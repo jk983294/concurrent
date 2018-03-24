@@ -1,8 +1,3 @@
-#set(examplesrc main.cpp)
-#add_executable(example ${examplesrc})
-#target_link_libraries(example concurrent_common_lib pthread rt)
-
-
 file( GLOB APP_SOURCES "*.cpp" "*/*.cpp" )
 foreach( sourcefile ${APP_SOURCES} )
     # executable name cut off .cpp
