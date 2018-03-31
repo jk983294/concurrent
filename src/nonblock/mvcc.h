@@ -8,6 +8,16 @@
 
 namespace frenzy {
 
+/**
+ * Multi-Version Concurrency Control (MVCC) is a basic technique for elimination of starvation.
+ * MVCC allows several versions of an object to exist at the same time.
+ * That is, there are the "current" version and one or more previous versions.
+ * Readers acquire the current version and work with it as much as they want.
+ * During that a writer can create and publish a new version of an object, which becomes the current.
+ * Readers still work the previous version and can't block/starve writers.
+ * When readers end with an old version of an object, it goes away.
+ */
+
 #define MVCC_CONTENSION_BACKOFF_SLEEP_MS 50
 
 template <class ValueType>
