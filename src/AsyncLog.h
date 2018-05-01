@@ -2,6 +2,7 @@
 #define CONCURRENT_ASYNC_LOG_H
 
 #include <iostream>
+#include <sstream>
 #include "ConcurrentWrapper.h"
 #include "Utils.h"
 
@@ -30,10 +31,12 @@ public:
     ConcurrentWrapper<std::ostream &> log;
 };
 
-#define PERFORM_LOG(file, line, str)                                                                              \
-    {                                                                                                             \
-        frenzy::AsyncLog::instance().log(                                                                         \
-            [=](ostream &c) { c << frenzy::time_string() << " " << file << ":" << line << " " << str << "\n"; }); \
+#define PERFORM_LOG(file, line, content)                                                      \
+    {                                                                                         \
+        std::ostringstream oss;                                                               \
+        oss << frenzy::time_string() << " " << file << ":" << line << " " << content << "\n"; \
+        std::string __result = oss.str();                                                     \
+        frenzy::AsyncLog::instance().log([__result](ostream &c) { c << __result; });          \
     }
 
 #define ASYNC_LOG(str) PERFORM_LOG(__FILE__, __LINE__, str)
