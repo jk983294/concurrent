@@ -1,5 +1,5 @@
-#ifndef MIDAS_CIRCULAR_BUFFER_H
-#define MIDAS_CIRCULAR_BUFFER_H
+#ifndef CONCURRENT_CIRCULAR_BUFFER_H
+#define CONCURRENT_CIRCULAR_BUFFER_H
 
 #include <atomic>
 #include <cstdint>
@@ -50,6 +50,9 @@ struct NonFlatStructTraits {
     using Type = T;  // Element Type given to CircularBuffer must be uint8_t
 };
 
+/**
+ * for single writer single reader
+ */
 template <typename MemorySpace = HeapMemory, typename Element = uint8_t, typename Traits = FlatStructTraits<Element>>
 class CircularBuffer {
 private:

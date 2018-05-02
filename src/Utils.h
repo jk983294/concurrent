@@ -7,6 +7,7 @@
 
 namespace frenzy {
 
+std::string timespec2string(const timespec& ts);
 std::string time_string();
 
 template <typename T>

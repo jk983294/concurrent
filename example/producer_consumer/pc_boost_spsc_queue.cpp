@@ -1,4 +1,4 @@
-#include <AsyncLog.h>
+#include <AsioLog.h>
 #include <boost/lockfree/spsc_queue.hpp>
 #include <iostream>
 #include <thread>
@@ -11,7 +11,7 @@ void produce(TQueue& q, int id) {
     int value = 0;
     while (true) {
         while (!q.push(value)) asm volatile("pause");
-        ASYNC_LOG("producer " << id << " put " << value);
+        ASIO_LOG_INFO("producer " << id << " put " << value);
         ++value;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000 * (rand() % 5)));
@@ -22,7 +22,7 @@ void consume(TQueue& q, int id) {
     int data;
     while (true) {
         while (!q.pop(data)) asm volatile("pause");
-        ASYNC_LOG("consumer " << id << " get " << data);
+        ASIO_LOG_INFO("consumer " << id << " get " << data);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000 * (rand() % 5)));
     }
