@@ -9,6 +9,7 @@ namespace frenzy {
 
 std::string timespec2string(const timespec& ts);
 std::string time_string();
+size_t nextPowerOf2(size_t n);
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {

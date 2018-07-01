@@ -8,6 +8,8 @@
 #include <map>
 #include <random>
 #include <set>
+#include <unordered_map>
+#include "allocator/FastPoolAllocator.h"
 
 using namespace std;
 
@@ -106,6 +108,14 @@ class Performance {
         std::cout << "Map - Default STL Allocator : " << std::fixed << test_map<std::map<int, int, std::less<int>>>()
                   << " seconds." << std::endl;
         std::cout << "Map - Tested Allocator : " << std::fixed << test_map<std::map<int, int, std::less<int>, Alloc>>()
+                  << " seconds." << std::endl
+                  << std::endl;
+
+        std::cout << "unordered_map - Default STL Allocator : " << std::fixed
+                  << test_map<std::unordered_map<int, int>>() << " seconds." << std::endl;
+        std::cout << "unordered_map - Tested Allocator : " << std::fixed
+                  << test_map<std::unordered_map<int, int, std::hash<int>, std::equal_to<int>,
+                                                 frenzy::FastPoolAllocator<std::pair<int, int>>>>()
                   << " seconds." << std::endl
                   << std::endl;
 
