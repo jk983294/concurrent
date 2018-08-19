@@ -1,5 +1,6 @@
-#include <log/AsyncLog.h>
+#include <log/ShmLog.h>
 #include <atomic>
+#include <vector>
 
 using namespace std;
 
@@ -8,13 +9,16 @@ std::atomic<int> value;
 void worker(int id) {
     while (1) {
         int localValue = value.load();
-        ASYNC_LOG("thread " << id << " get value " << localValue);
+        SHM_LOG_INFO("thread %d get value %d", id, localValue);
         ++value;
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000 * (rand() % 5)));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100 * (rand() % 5)));
     }
 }
 
 int main() {
+    frenzy::ShmLog::instance().initShm("test.log.shm", 128);
+    frenzy::ShmLog::instance().open("/tmp/test.log", frenzy::SLP_INFO);
+
     const int NUM_WORKER = 5;
     vector<thread> workers;
 
