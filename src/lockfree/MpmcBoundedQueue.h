@@ -2,6 +2,7 @@
 #define CONCURRENT_MPMC_BOUNDED_QUEUE_H
 
 #include <atomic>
+#include <memory>
 #include <stdexcept>
 #include <type_traits>
 
@@ -188,6 +189,6 @@ private:
     alignas(CacheLineSize) std::atomic<size_t> head_;
     alignas(CacheLineSize) std::atomic<size_t> tail_;
 };
-}
+}  // namespace frenzy
 
 #endif

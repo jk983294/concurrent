@@ -1,4 +1,5 @@
 #include <nonblock/Active.h>
+#include <functional>
 #include <iostream>
 
 using namespace std;

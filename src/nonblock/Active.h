@@ -1,6 +1,7 @@
 #ifndef CONCURRENT_ACTIVE_H
 #define CONCURRENT_ACTIVE_H
 
+#include <functional>
 #include <thread>
 #include "ConcurrentQueue.h"
 
@@ -30,6 +31,6 @@ public:
 
     void submit(std::function<void()> callback_) { queue_.push(callback_); }
 };
-}
+}  // namespace frenzy
 
 #endif

@@ -1,5 +1,6 @@
-#include <log/AsyncLog.h>
 #include <ConcurrentQueue.h>
+#include <log/AsyncLog.h>
+#include <functional>
 #include <iostream>
 #include <thread>
 

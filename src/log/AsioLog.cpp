@@ -87,7 +87,7 @@ void LogWriter::on_batch_timeout(const boost::system::error_code& error) {
     }
 
     if (isRunning) {
-        batchTimer.expires_from_now(boost::posix_time::milliseconds(batchInterval));
+        batchTimer.expires_from_now(boost::posix_time::milliseconds(batchInterval.load()));
         batchTimer.async_wait(boost::bind(&LogWriter::on_batch_timeout, this, boost::asio::placeholders::error));
     }
 }
@@ -114,7 +114,7 @@ void LogWriter::service() {
         keepAliveTimer.expires_from_now(boost::posix_time::pos_infin);
         keepAliveTimer.async_wait(boost::bind(&LogWriter::keep_alive, this, boost::asio::placeholders::error));
 
-        batchTimer.expires_from_now(boost::posix_time::milliseconds(batchInterval));
+        batchTimer.expires_from_now(boost::posix_time::milliseconds(batchInterval.load()));
         batchTimer.async_wait(boost::bind(&LogWriter::on_batch_timeout, this, boost::asio::placeholders::error));
 
         while (isRunning) {
@@ -138,4 +138,4 @@ std::string LogWriter::format(const LogQueueItem& data) {
 }
 
 void Log::set_priority(const std::string& str) { priority = from_string_log_priority(str.c_str()); }
-}
+}  // namespace frenzy

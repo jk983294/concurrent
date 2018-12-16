@@ -17,6 +17,7 @@ message ("cxx Flags: " ${CMAKE_CXX_FLAGS})
 # Source code
 include_directories(src)
 include_directories("/home/$USER/include")
+include_directories("/opt/version/latest/3rd/include")
 
 add_subdirectory(src)
 add_subdirectory(example)

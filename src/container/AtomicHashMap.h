@@ -2,13 +2,17 @@
 #define CONCURRENT_ATOMIC_HASH_ARRAY_H
 
 #include <atomic>
+#include <cstdint>
 #include <cstring>
+#include <random>
 #include "Utils.h"
 #include "utils/Random.h"
 
 namespace frenzy {
 
 /**
+ * took from Folly AtomicUnorderedMap
+ *
  * LIMITATIONS:
  * 1. Insert only (*) - the only write operation supported is findOrConstruct.
  * you can roll your own concurrency control for in-place updates of values
@@ -16,6 +20,7 @@ namespace frenzy {
  * 2. No resizing - you must specify the capacity up front,
  * Insert performance will degrade once the load factor is high. you can't remove existing keys.
  * 3. 2^30 maximum default capacity
+ *
  * WHAT YOU GET IN EXCHANGE:
  * 1. Arbitrary key and value types - any K and V that can be used in a std::unordered_map
  * can be used here.  In fact, the key and value types don't even have to be copyable or movable!
@@ -28,10 +33,10 @@ namespace frenzy {
  * 5. Lock-free insert - writes proceed in parallel.
  * If a thread in the middle of a write is unlucky and gets suspended, it doesn't block anybody else.
  */
-template <typename Key, typename Value, typename Hash = std::hash<Key>, typename KeyEqual = std::equal_to<Key>,
+template <typename Key, typename Value, template <typename> class Atom = std::atomic, typename Hash = std::hash<Key>,
+          typename KeyEqual = std::equal_to<Key>,
           bool SkipKeyValueDeletion =
               (std::is_trivially_destructible<Key>::value && std::is_trivially_destructible<Value>::value),
-          template <typename> class Atom = std::atomic, typename IndexType = uint32_t,
           typename Allocator = std::allocator<char>>
 struct AtomicHashMap {
     typedef Key key_type;
@@ -44,7 +49,7 @@ struct AtomicHashMap {
     typedef const value_type& const_reference;
 
     struct ConstIterator {
-        ConstIterator(const AtomicHashMap& owner, IndexType slot) : owner_(owner), slot_(slot) {}
+        ConstIterator(const AtomicHashMap& owner, uint32_t slot) : owner_(owner), slot_(slot) {}
 
         ConstIterator(const ConstIterator&) = default;
         ConstIterator& operator=(const ConstIterator&) = default;
@@ -74,18 +79,16 @@ struct AtomicHashMap {
 
     private:
         const AtomicHashMap& owner_;
-        IndexType slot_;
+        uint32_t slot_;
     };
 
     typedef ConstIterator const_iterator;
     friend ConstIterator;
 
 private:
-    enum : IndexType {
-        kMaxAllocationTries = 1000,  // after this we throw
-    };
+    static constexpr uint32_t kMaxAllocationTries = 1000;  // after this we throw
 
-    enum BucketState : IndexType {
+    enum BucketState : uint32_t {
         EMPTY = 0,
         CONSTRUCTING = 1,
         LINKED = 2,
@@ -105,9 +108,9 @@ private:
          * whose keys map to this slot. When things are going well the head usually links to this slot,
          * but that doesn't always have to happen.
          */
-        Atom<IndexType> headAndState_;
+        Atom<uint32_t> headAndState_;
 
-        IndexType next_;  // The next bucket in the chain
+        uint32_t next_;  // The next bucket in the chain
 
         typename std::aligned_storage<sizeof(value_type), alignof(value_type)>::type raw_;  // Key and Value
 
@@ -131,25 +134,25 @@ private:
 public:
     /**
      * Constructs a map that will support the insertion of maxSize key-value pairs without
-     * exceeding the max load factor. The capacity is limited to 2^30 for the default IndexType
+     * exceeding the max load factor. The capacity is limited to 2^30 for the default uint32_t
      */
     explicit AtomicHashMap(size_t maxSize, float maxLoadFactor = 0.8f, const Allocator& alloc = Allocator())
         : allocator_(alloc) {
         size_t capacity = size_t(maxSize / std::min(1.0f, maxLoadFactor) + 128);
-        size_t avail = size_t{1} << (8 * sizeof(IndexType) - 2);
+        size_t avail = size_t{1} << (8 * sizeof(uint32_t) - 2);
         if (capacity > avail && maxSize < avail) {
             capacity = avail;
         }
 
         if (capacity < maxSize || capacity > avail) {
-            throw std::invalid_argument("AtomicHashMap capacity must fit in IndexType with 2 bits left over");
+            throw std::invalid_argument("AtomicHashMap capacity must fit in uint32_t with 2 bits left over");
         }
 
         numSlots_ = capacity;
         slotMask_ = nextPowerOf2(capacity * 4) - 1;
         memoryRequested_ = sizeof(Slot) * capacity;
         slots_ = reinterpret_cast<Slot*>(allocator_.allocate(memoryRequested_));
-        std::memset(slots_, 0, memoryRequested_);
+        std::memset(reinterpret_cast<void*>(slots_), 0, memoryRequested_);
         // mark the zero-th slot as in-use but not valid, since that happens to be our nil value
         slots_[0].stateUpdate(BucketState::EMPTY, BucketState::CONSTRUCTING);
     }
@@ -231,7 +234,7 @@ public:
     const_iterator find(const Key& key) const { return ConstIterator(*this, find(key, keyToSlotIndex(key))); }
 
     const_iterator cbegin() const {
-        IndexType slot = numSlots_ - 1;
+        auto slot = static_cast<uint32_t>(numSlots_ - 1);
         while (slot > 0 && slots_[slot].state() != BucketState::LINKED) {
             --slot;
         }
@@ -248,16 +251,17 @@ private:
     Allocator allocator_;
     Slot* slots_;
 
-    IndexType keyToSlotIndex(const Key& key) const {
+private:
+    uint32_t keyToSlotIndex(const Key& key) const {
         size_t h = hasher()(key);
         h &= slotMask_;
         while (h >= numSlots_) {
             h -= numSlots_;
         }
-        return h;
+        return static_cast<uint32_t>(h);
     }
 
-    IndexType find(const Key& key, IndexType slot) const {
+    uint32_t find(const Key& key, uint32_t slot) const {
         KeyEqual ke = {};
         auto hs = slots_[slot].headAndState_.load(std::memory_order_acquire);
         for (slot = hs >> 2; slot != 0; slot = slots_[slot].next_) {
@@ -269,13 +273,12 @@ private:
     }
 
     // allocates a slot and returns its index. tries to put it near slots_[start].
-    IndexType allocateNear(IndexType start) {
-        for (IndexType tries = 0; tries < kMaxAllocationTries; ++tries) {
+    uint32_t allocateNear(uint32_t start) {
+        for (uint32_t tries = 0; tries < kMaxAllocationTries; ++tries) {
             auto slot = allocationAttempt(start, tries);
             auto prev = slots_[slot].headAndState_.load(std::memory_order_acquire);
-            if ((prev & 3) == BucketState::EMPTY &&
-                slots_[slot].headAndState_.compare_exchange_strong(
-                    prev, prev + BucketState::CONSTRUCTING - BucketState::EMPTY)) {
+            if ((prev & 3) == BucketState::EMPTY && slots_[slot].headAndState_.compare_exchange_strong(
+                                                        prev, prev + BucketState::CONSTRUCTING - BucketState::EMPTY)) {
                 return slot;
             }
         }
@@ -286,25 +289,20 @@ private:
      * Returns the slot we should attempt to allocate after tries failed tries, starting from the specified slot.
      * This is pulled out so we can specialize it differently during deterministic testing
      */
-    IndexType allocationAttempt(IndexType start, IndexType tries) const {
+    uint32_t allocationAttempt(uint32_t start, uint32_t tries) const {
         if (tries < 8 && start + tries < numSlots_) {
-            return IndexType(start + tries);
+            return uint32_t(start + tries);
         } else {
-            IndexType rv;
-            if (sizeof(IndexType) <= 4) {
-                rv = IndexType(frenzy::Random::rand32(numSlots_));
-            } else {
-                rv = IndexType(frenzy::Random::rand64(numSlots_));
-            }
+            uint32_t rv = frenzy::Random::rand32(static_cast<uint32_t>(numSlots_));
             return rv;
         }
     }
 };
 
-/// MutableAtom is a tiny wrapper than gives you the option of atomically
-/// updating values inserted into an AtomicHashMap<K,
-/// MutableAtom<V>>.  This relies on AtomicHashMap's guarantee
-/// that it doesn't move values.
+/**
+ * MutableAtom is a tiny wrapper than gives you the option of atomically updating values inserted into
+ * an AtomicHashMap<K, MutableAtom<V>>.  This relies on AtomicHashMap's guarantee that it doesn't move values.
+ */
 template <typename T, template <typename> class Atom = std::atomic>
 struct MutableAtom {
     mutable Atom<T> data;
@@ -312,14 +310,66 @@ struct MutableAtom {
     explicit MutableAtom(const T& init) : data(init) {}
 };
 
-/// MutableData is a tiny wrapper than gives you the option of using an
-/// external concurrency control mechanism to updating values inserted
-/// into an AtomicHashMap.
+/**
+ * MutableData is a tiny wrapper than gives you the option of using an external concurrency control mechanism
+ * to updating values inserted into an AtomicHashMap.
+ */
 template <typename T>
 struct MutableData {
     mutable T data;
     explicit MutableData(const T& init) : data(init) {}
 };
-}
+
+template <class T>
+struct NonAtomic {
+    T value;
+
+    NonAtomic() = default;
+    NonAtomic(const NonAtomic&) = delete;
+    constexpr /* implicit */ NonAtomic(T desired) : value(desired) {}
+
+    T operator+=(T arg) {
+        value += arg;
+        return load();
+    }
+
+    T load(std::memory_order /* order */ = std::memory_order_seq_cst) const { return value; }
+
+    /* implicit */
+    operator T() const { return load(); }
+
+    void store(T desired, std::memory_order /* order */ = std::memory_order_seq_cst) { value = desired; }
+
+    T exchange(T desired, std::memory_order /* order */ = std::memory_order_seq_cst) {
+        T old = load();
+        store(desired);
+        return old;
+    }
+
+    bool compare_exchange_weak(T& expected, T desired, std::memory_order /* success */ = std::memory_order_seq_cst,
+                               std::memory_order /* failure */ = std::memory_order_seq_cst) {
+        if (value == expected) {
+            value = desired;
+            return true;
+        }
+
+        expected = value;
+        return false;
+    }
+
+    bool compare_exchange_strong(T& expected, T desired, std::memory_order /* success */ = std::memory_order_seq_cst,
+                                 std::memory_order /* failure */ = std::memory_order_seq_cst) {
+        if (value == expected) {
+            value = desired;
+            return true;
+        }
+
+        expected = value;
+        return false;
+    }
+
+    bool is_lock_free() const { return true; }
+};
+}  // namespace frenzy
 
 #endif

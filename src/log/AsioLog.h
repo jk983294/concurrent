@@ -152,7 +152,7 @@ public:
 
     std::shared_ptr<LogWriter> get_writer() { return writer; }
 
-    bool can_log(LogPriority priority) { return priority >= priority; }
+    bool can_log(LogPriority priority_) { return priority >= priority_; }
 
     void log(LogPriority priority, const char* file, int line, const LogMsg& msg) {
         writer->write_log(priority, file, line, msg.str());
@@ -165,7 +165,7 @@ private:
     Log& operator=(const Log&) = delete;
     Log() : writer(new LogWriter), priority(INFO) {}
 };
-}
+}  // namespace frenzy
 
 #define PERFORM_LOG(priority, file, line, str)                                          \
     {                                                                                   \

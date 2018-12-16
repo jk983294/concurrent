@@ -1,5 +1,6 @@
 #include <log/AsyncLog.h>
 #include <atomic>
+#include <functional>
 
 using namespace std;
 

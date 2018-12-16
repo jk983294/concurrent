@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -76,6 +77,6 @@ public:
         return true;
     }
 };
-}
+}  // namespace frenzy
 
 #endif

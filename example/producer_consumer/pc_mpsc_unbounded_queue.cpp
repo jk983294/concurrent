@@ -1,5 +1,6 @@
-#include <log/AsyncLog.h>
 #include <lockfree/MpscUnboundedQueue.h>
+#include <log/AsyncLog.h>
+#include <functional>
 
 using namespace std;
 

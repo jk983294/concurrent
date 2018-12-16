@@ -1,5 +1,6 @@
 #include <log/ShmLog.h>
 #include <atomic>
+#include <functional>
 #include <vector>
 
 using namespace std;

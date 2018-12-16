@@ -6,6 +6,6 @@ foreach( sourcefile ${APP_SOURCES} )
 
     message ("source files: " ${sourcefile} " executable: " ${executablename})
     add_executable( ${executablename} ${sourcefile} )
-    target_link_libraries( ${executablename} concurrent_common_lib pthread rt )
+    target_link_libraries( ${executablename} frenzy pthread rt )
     target_link_libraries( ${executablename} ${Boost_LIBRARIES} tbb)
 endforeach( sourcefile ${APP_SOURCES} )
