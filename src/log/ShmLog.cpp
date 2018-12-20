@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <utils/Utils.h>
 #include <cstdarg>
 #include <cstring>
 #include <map>
@@ -11,7 +12,7 @@ using namespace std;
 
 namespace frenzy {
 
-bool ShmLog::initShm(const string& logShmName, int shmEntryCount) {
+bool ShmLog::initShm(string logShmName, int shmEntryCount) {
     static bool result = false;
     if (shmInited) {
         cerr << "ShmLog::initShm already called, return last result:" << result;
@@ -19,17 +20,15 @@ bool ShmLog::initShm(const string& logShmName, int shmEntryCount) {
     }
     shmInited = true;
 
-    if (logShmName == "") {
-        cout << "empty logShmName, print to console" << endl;
-        result = true;
-        return true;
+    if (logShmName.empty()) {
+        logShmName = "shm_log." + now_string();
     }
 
     shmPath = logShmName;
     maxCount = shmEntryCount;
 
     size_t fileSize = maxCount * sizeof(ShmContent);
-    printf("shm opened with %d * %zu = %zd\n", maxCount, sizeof(ShmContent), fileSize);
+    printf("/dev/%s shm opened with %d * %zu = %zd\n", logShmName.c_str(), maxCount, sizeof(ShmContent), fileSize);
     pShm = (char*)create_mmap_with_meta(logShmName, fileSize);
 
     if (pShm == nullptr) {
@@ -50,16 +49,22 @@ bool ShmLog::initShm(const string& logShmName, int shmEntryCount) {
     return true;
 }
 
-bool ShmLog::open(const string& outfileName, ShmLogPriority priority) {
+bool ShmLog::open(string outfileName, ShmLogPriority priority, bool print) {
     if (opened_) {
         cerr << "ShmLog::open called multi times" << endl;
         return false;
+    }
+    if (outfileName.empty()) {
+        outfileName = "/tmp/shm_log." + now_string();
+    }
+    if (print) {
+        outfileName = "std stream";
     }
     priority_ = priority;
     opened_ = true;
     cout << "ShmLog::open, outfile name:" << outfileName << endl;
 
-    if (pMeta == nullptr || shmPath == "") {
+    if (pMeta == nullptr || shmPath.empty()) {
         return true;
     } else {
         strcpy(pMeta->filePath, outfileName.c_str());
@@ -68,15 +73,32 @@ bool ShmLog::open(const string& outfileName, ShmLogPriority priority) {
             return false;
         }
 
-        ofs = new ofstream;
-        ofs->open(outfileName, ios::out | ios::app);
-        if (!ofs->is_open()) {
-            cerr << "open outfile:" << outfileName << " failed" << endl;
-            return false;
+        if (print) {
+            os = &std::cout;
+        } else {
+            ofs = new ofstream;
+            ofs->open(outfileName, ios::out | ios::app);
+            if (!ofs->is_open()) {
+                cerr << "open outfile:" << outfileName << " failed" << endl;
+                return false;
+            }
+            os = ofs;
         }
-        os = ofs;
     }
     return true;
+}
+
+ShmLogPriority ShmLog::getPriorityByStr(std::string p) {
+    if (p == "debug")
+        return frenzy::ShmLogPriority::SLP_DEBUG;
+    else if (p == "warning")
+        return frenzy::ShmLogPriority::SLP_WARNING;
+    else if (p == "error")
+        return frenzy::ShmLogPriority::SLP_ERROR;
+    else if (p == "critical")
+        return frenzy::ShmLogPriority::SLP_CRITICAL;
+    else
+        return frenzy::ShmLogPriority::SLP_INFO;
 }
 
 const int KeepLinesForConcurrency = 10;
@@ -98,7 +120,7 @@ void ShmLog::dumpLog() {
         int dstIndex = curIndex;
         if (writeWarpCount - readWarpCount == 1) {
             cout << "warp1, doneIndex:" << doneIndex << ", curIndex:" << curIndex << endl;
-            // shmindex exceeded fileout index
+            // shm index exceeded fileout index
             if (doneIndex < curIndex + 10 * KeepLinesForConcurrency) {
                 cerr << "too fast log case 2, unable to write to disk file, exit dump thread" << endl;
                 break;
@@ -159,13 +181,16 @@ void ShmLog::log(ShmLogPriority priority, const char* sourceFile, int line, cons
     pData[index].priority = priority;
     char* buf = pData[index].msg;
 
-    int n = sprintf(buf, "[%s:%d]", sourceFile, line);
-    buf += n;
-
     va_list argp;
     va_start(argp, formatStr);
-    if (-1 == vsnprintf(buf, MaxLogLength, formatStr, argp)) buf[MaxLogLength - 1] = 0;
+    int n = vsnprintf(buf, MaxLogLength, formatStr, argp);
     va_end(argp);
+    if (-1 == n)
+        buf[MaxLogLength - 1] = '\0';
+    else {
+        buf += n;
+        sprintf(buf, " (%s:%d)", sourceFile, line);
+    }
 }
 
 }  // namespace frenzy

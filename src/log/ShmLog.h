@@ -25,7 +25,7 @@ struct ShmLogMeta {
     size_t metaSize{sizeof(ShmLogMeta)};
     size_t totalSize{0};
     int contentCount{0};
-    int writeIndex{0};
+    int writeIndex{-1};  // shared memory location, which support multiply writers
     char filePath[256]{0};
 };
 
@@ -45,11 +45,13 @@ public:
     /**
      * log count can not be too small. otherwise it is easily entry overflow
      */
-    bool initShm(const std::string& logShmName, int maxLogCount = DefaultShmLogEntryCount);
+    bool initShm(std::string logShmName = "", int maxLogCount = DefaultShmLogEntryCount);
 
-    bool open(const std::string& outfileName = "", ShmLogPriority priority = SLP_INFO);
+    bool open(std::string outfileName = "", ShmLogPriority priority = SLP_INFO, bool print = true);
 
-    ShmLogPriority priority() const { return priority_; }
+    ShmLogPriority getPriority() const { return priority_; }
+    void setPriority(ShmLogPriority p) { priority_ = p; }
+    static ShmLogPriority getPriorityByStr(std::string p);
 
     void log(ShmLogPriority priority, const char* sourceFile, int line, const char* formatStr, ...);
 
@@ -61,22 +63,22 @@ public:
         char buf[32];
         struct tm tmp;
         localtime_r(&(ts.tv_sec), &tmp);
-        sprintf(buf, "[%04d%02d%02d-%02d:%02d:%02d.%06d]", tmp.tm_year + 1900, tmp.tm_mon + 1, tmp.tm_mday, tmp.tm_hour,
+        sprintf(buf, "%04d%02d%02d-%02d:%02d:%02d.%06d", tmp.tm_year + 1900, tmp.tm_mon + 1, tmp.tm_mday, tmp.tm_hour,
                 tmp.tm_min, tmp.tm_sec, (int)(ts.tv_nsec / 1000));
         return buf;
     }
 
     static std::string getPriorityStr(ShmLogPriority priority) {
         if (priority == SLP_DEBUG) {
-            return "[debug]";
+            return "debug";
         } else if (priority == SLP_INFO) {
-            return "[info]";
+            return "info";
         } else if (priority == SLP_WARNING) {
-            return "[warning]";
+            return "warning";
         } else if (priority == SLP_ERROR) {
-            return "[error]";
+            return "error";
         } else {
-            return "[critical]";
+            return "critical";
         }
     }
 
@@ -88,15 +90,15 @@ private:
     static std::string genLogContent(const ShmContent& shmContent) {
         char buf[1024];
         std::string levelStr = ShmLog::getPriorityStr(shmContent.priority);
-        sprintf(buf, "%s%s%s", GetTimeStr(shmContent.ts).c_str(), levelStr.c_str(), shmContent.msg);
+        sprintf(buf, "%s %s %s", GetTimeStr(shmContent.ts).c_str(), levelStr.c_str(), shmContent.msg);
         return buf;
     }
 
 public:
     char* pShm{nullptr};  // start address of shm
-    ShmLogMeta* pMeta;
-    ShmContent* pData;  // ShmContent address
-    int* volatile pIndex{nullptr};
+    ShmLogMeta* pMeta{nullptr};
+    ShmContent* pData{nullptr};     // ShmContent address
+    int* volatile pIndex{nullptr};  // point to ShmLogMeta.writeIndex, support multi-writer
     int maxCount{0};
     volatile int writeWarpCount{0};  // current writer pos warp count
     int readWarpCount{0};            // read pos warp count
@@ -119,10 +121,11 @@ public:
         }                                                                                \
     }
 
-#define SHM_LOG_DEBUG(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_DEBUG, __FILE__, __LINE__, args)
-#define SHM_LOG_INFO(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_INFO, __FILE__, __LINE__, args)
-#define SHM_LOG_WARNING(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_WARNING, __FILE__, __LINE__, args)
-#define SHM_LOG_ERROR(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_ERROR, __FILE__, __LINE__, args)
-#define SHM_LOG_CRITICAL(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_CRITICAL, __FILE__, __LINE__, args)
+#define LOG_SET_PRIORITY(priority) frenzy::ShmLog::instance().setPriority(priority);
+#define LOG_DEBUG(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_DEBUG, __FILE__, __LINE__, args)
+#define LOG_INFO(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_INFO, __FILE__, __LINE__, args)
+#define LOG_WARN(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_WARNING, __FILE__, __LINE__, args)
+#define LOG_ERROR(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_ERROR, __FILE__, __LINE__, args)
+#define LOG_CRITICAL(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_CRITICAL, __FILE__, __LINE__, args)
 
 #endif

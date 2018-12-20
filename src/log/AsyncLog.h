@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include "ConcurrentWrapper.h"
-#include "Utils.h"
+#include "utils/Utils.h"
 
 namespace frenzy {
 
@@ -40,6 +40,6 @@ public:
     }
 
 #define ASYNC_LOG(str) PERFORM_LOG(__FILE__, __LINE__, str)
-}
+}  // namespace frenzy
 
 #endif

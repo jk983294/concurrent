@@ -21,7 +21,7 @@ inline uint32_t _roundup_pagesize(uint32_t x_) { return (x_ + PAGE_SIZE - 1) & (
 void* create_mmap(const std::string& fileName, size_t& mapSize) {
     int fd = -1;
     mapSize = _roundup_pagesize(mapSize);
-    fd = shm_open(fileName.c_str(), O_CREAT | O_EXCL | O_RDWR, 0666);
+    fd = shm_open(fileName.c_str(), O_CREAT | O_RDWR, 0666);
     if (fd < 0) {
         // created under /dev/shm/
         std::cerr << "shm_open: " << strerror(errno) << " : " << fileName << std::endl;

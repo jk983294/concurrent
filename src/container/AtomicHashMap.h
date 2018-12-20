@@ -5,8 +5,8 @@
 #include <cstdint>
 #include <cstring>
 #include <random>
-#include "Utils.h"
 #include "utils/Random.h"
+#include "utils/Utils.h"
 
 namespace frenzy {
 

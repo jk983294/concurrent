@@ -10,15 +10,16 @@ std::atomic<int> value;
 void worker(int id) {
     while (1) {
         int localValue = value.load();
-        SHM_LOG_INFO("thread %d get value %d", id, localValue);
+        LOG_INFO("thread %d get value %d", id, localValue);
         ++value;
         std::this_thread::sleep_for(std::chrono::milliseconds(100 * (rand() % 5)));
     }
 }
 
 int main() {
-    frenzy::ShmLog::instance().initShm("test.log.shm", 128);
-    frenzy::ShmLog::instance().open("/tmp/test.log", frenzy::SLP_INFO);
+    frenzy::ShmLog::instance().initShm();
+    frenzy::ShmLog::instance().open("/tmp/test.log", frenzy::SLP_INFO, false);
+    // frenzy::ShmLog::instance().open();
 
     const int NUM_WORKER = 5;
     vector<thread> workers;
