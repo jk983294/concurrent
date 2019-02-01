@@ -50,6 +50,10 @@ bool ShmLog::initShm(string logShmName, int shmEntryCount) {
 }
 
 bool ShmLog::open(string outfileName, ShmLogPriority priority, bool print) {
+    if(!shmInited) {
+        initShm();
+    }
+
     if (opened_) {
         cerr << "ShmLog::open called multi times" << endl;
         return false;
