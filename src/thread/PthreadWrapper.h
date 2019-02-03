@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <vector>
 #include <cstring>
+#include <iostream>
 
 namespace frenzy {
 

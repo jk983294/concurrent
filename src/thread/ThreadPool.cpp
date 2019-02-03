@@ -26,13 +26,13 @@ protected:
     bool _del_job{false};
 
     // condition for job-Waiting
-    UCondition _work_cond;
+    PCondition _work_cond;
 
     // indicates end-of-thread
     bool _end{false};
 
     // mutex for preventing premature deletion
-    UMutex _del_mutex;
+    PMutex _del_mutex;
 
 public:
     PThreadPoolThr(const int n, PThreadPool* p) : PThread(n), _pool(p) {}
@@ -41,13 +41,13 @@ public:
 
     // parallel Running method
     void Run() {
-        UScopedLock del_Lock(_del_mutex);
+        PScopedLock del_Lock(_del_mutex);
 
         while (!_end) {
             // append thread to idle-list and Wait for work
             _pool->AppendIdle(this);
             {
-                UScopedLock work_Lock(_work_cond);
+                PScopedLock work_Lock(_work_cond);
                 while ((_job == nullptr) && !_end) _work_cond.Wait();
             }
 
@@ -60,7 +60,7 @@ public:
                 if (_del_job) delete _job;
 
                 // reset data
-                UScopedLock work_lock(_work_cond);
+                PScopedLock work_lock(_work_cond);
 
                 _job = nullptr;
                 _data_ptr = nullptr;
@@ -70,7 +70,7 @@ public:
 
     // set and Run job with optional data
     void RunJob(PThreadPool::PThreadJob* j, void* p, const bool del = false) {
-        UScopedLock Lock(_work_cond);
+        PScopedLock Lock(_work_cond);
 
         _job = j;
         _data_ptr = p;
@@ -79,11 +79,11 @@ public:
         _work_cond.Signal();
     }
 
-    UMutex& del_mutex() { return _del_mutex; }
+    PMutex& del_mutex() { return _del_mutex; }
 
     // quit thread (reset data and wake up)
     void quit() {
-        UScopedLock Lock(_work_cond);
+        PScopedLock Lock(_work_cond);
 
         _end = true;
         _job = nullptr;
@@ -155,7 +155,7 @@ void PThreadPool::Sync(PThreadJob* job) {
 void PThreadPool::SyncAll() {
     while (true) {
         {
-            UScopedLock Lock(_idle_cond);
+            PScopedLock Lock(_idle_cond);
 
             // Wait until next thread becomes idle
             if (_idle_threads.size() < _max_parallel)
@@ -171,7 +171,7 @@ void PThreadPool::SyncAll() {
 PThreadPoolThr* PThreadPool::GetIdle() {
     while (true) {
         // Wait for an idle thread
-        UScopedLock Lock(_idle_cond);
+        PScopedLock Lock(_idle_cond);
 
         while (_idle_threads.empty()) _idle_cond.Wait();
 
@@ -186,7 +186,7 @@ PThreadPoolThr* PThreadPool::GetIdle() {
 
 // append recently finished thread to idle list
 void PThreadPool::AppendIdle(PThreadPoolThr* t) {
-    UScopedLock Lock(_idle_cond);
+    PScopedLock Lock(_idle_cond);
 
     for (std::list<PThreadPoolThr*>::iterator iter = _idle_threads.begin(); iter != _idle_threads.end(); ++iter) {
         if ((*iter) == t) {
