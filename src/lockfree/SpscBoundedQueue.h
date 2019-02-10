@@ -109,6 +109,14 @@ public:
         return &slots_[tail + PaddingCountOfT];
     }
 
+    /**
+     * this call should follow size(), make sure it must have item to consume
+     */
+    T *front_no_check() noexcept {
+        auto const tail = tailIndex_.load(std::memory_order_relaxed);
+        return &slots_[tail + PaddingCountOfT];
+    }
+
     void pop() noexcept {
         static_assert(std::is_nothrow_destructible<T>::value, "T must be nothrow destructible");
         auto const tail = tailIndex_.load(std::memory_order_relaxed);
