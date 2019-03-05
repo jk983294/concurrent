@@ -62,7 +62,7 @@ int read(int& source, int& target, uint64_t* lock, uint32_t readerId) {
     return -1;
 }
 
-void reader_thread(int& shared_value, uint64_t& wordLock, int id) {
+void reader_thread(int& shared_value, uint64_t& wordLock, uint32_t id) {
     int data;
     while (true) {
         if (read(shared_value, data, &wordLock, id) == 0) {
@@ -75,7 +75,7 @@ void reader_thread(int& shared_value, uint64_t& wordLock, int id) {
     }
 }
 
-void writer_thread(int& shared_value, uint64_t& wordLock, int id) {
+void writer_thread(int& shared_value, uint64_t& wordLock, uint32_t id) {
     while (true) {
         {
             frenzy::WordLock::VersionGuard guard{&wordLock};
@@ -89,18 +89,18 @@ void writer_thread(int& shared_value, uint64_t& wordLock, int id) {
 int main() {
     srand((unsigned)time(0));
 
-    const int NUM_READERS = 2;
-    const int NUM_WRITERS = 1;
+    const uint32_t NUM_READERS = 2;
+    const uint32_t NUM_WRITERS = 1;
 
     int shared_value{0};
     uint64_t lock;
 
     vector<thread> readers, writers;
-    for (int i = 0; i < NUM_READERS; i++) {
+    for (uint32_t i = 0; i < NUM_READERS; i++) {
         readers.push_back(thread(reader_thread, std::ref(shared_value), std::ref(lock), i));
     }
 
-    for (int i = 0; i < NUM_WRITERS; i++) {
+    for (uint32_t i = 0; i < NUM_WRITERS; i++) {
         writers.push_back(thread(writer_thread, std::ref(shared_value), std::ref(lock), i));
     }
 

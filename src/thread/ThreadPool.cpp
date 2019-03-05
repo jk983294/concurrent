@@ -105,7 +105,7 @@ PThreadPool::PThreadPool(const unsigned int max_p) {
     }
 
     for (unsigned int i = 0; i < _max_parallel; i++) {
-        _threads[i] = new PThreadPoolThr(i, this);
+        _threads[i] = new PThreadPoolThr(static_cast<int>(i), this);
 
         if (_threads == nullptr)
             std::cerr << "(PThreadPool) PThreadPool : could not allocate thread" << std::endl;

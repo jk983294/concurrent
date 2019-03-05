@@ -6,8 +6,8 @@
 using namespace std;
 
 int main() {
-    std::vector<int> v(10);
-    frenzy::ConcurrentWrapper<std::vector<int>&> cv{v};
+    std::vector<int> v1(10);
+    frenzy::ConcurrentWrapper<std::vector<int>&> cv{v1};
     auto f1 = cv.submit([](std::vector<int>& v) -> int { return std::accumulate(v.begin(), v.end(), 0); });
 
     auto f2 = cv.submit([](std::vector<int>& v) -> bool {

@@ -27,7 +27,7 @@ bool ShmLog::initShm(string logShmName, int shmEntryCount) {
     shmPath = logShmName;
     maxCount = shmEntryCount;
 
-    size_t fileSize = maxCount * sizeof(ShmContent);
+    size_t fileSize = static_cast<size_t>(maxCount) * sizeof(ShmContent);
     printf("/dev/%s shm opened with %d * %zu = %zd\n", logShmName.c_str(), maxCount, sizeof(ShmContent), fileSize);
     pShm = (char*)create_mmap_with_meta(logShmName, fileSize);
 
@@ -50,7 +50,7 @@ bool ShmLog::initShm(string logShmName, int shmEntryCount) {
 }
 
 bool ShmLog::open(string outfileName, ShmLogPriority priority, bool print) {
-    if(!shmInited) {
+    if (!shmInited) {
         initShm();
     }
 

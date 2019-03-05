@@ -31,7 +31,7 @@ void writer_thread(frenzy::mvcc<int>& shared_value, int id) {
 }
 
 int main() {
-    srand((unsigned)time(0));
+    srand((unsigned)time(nullptr));
 
     const int NUM_READERS = 2;
     const int NUM_WRITERS = 2;

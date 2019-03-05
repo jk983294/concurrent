@@ -20,14 +20,14 @@ inline uint32_t _roundup_pagesize(uint32_t x_) { return (x_ + PAGE_SIZE - 1) & (
 
 void* create_mmap(const std::string& fileName, size_t& mapSize) {
     int fd = -1;
-    mapSize = _roundup_pagesize(mapSize);
+    mapSize = _roundup_pagesize(static_cast<uint32_t>(mapSize));
     fd = shm_open(fileName.c_str(), O_CREAT | O_RDWR, 0666);
     if (fd < 0) {
         // created under /dev/shm/
         std::cerr << "shm_open: " << strerror(errno) << " : " << fileName << std::endl;
         return nullptr;
     }
-    if (ftruncate(fd, mapSize) < 0) {
+    if (ftruncate(fd, static_cast<long>(mapSize)) < 0) {
         close(fd);
         shm_unlink(fileName.c_str());
         std::cerr << "ftruncate: " << strerror(errno) << " : " << fileName << std::endl;
@@ -48,7 +48,7 @@ void* create_mmap(const std::string& fileName, size_t& mapSize) {
         std::cerr << "map size exceed file size, " << size << " > " << stats.st_size << std::endl;
         return nullptr;
     }
-    void* addr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    void* addr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (addr == MAP_FAILED) {
         close(fd);
         shm_unlink(fileName.c_str());
@@ -65,7 +65,7 @@ void* create_mmap_with_meta(const std::string& fileName, size_t& mapSize) {
 
 void* attach_mmap(const std::string& fileName, size_t& mapSize) {
     int fd = -1;
-    mapSize = _roundup_pagesize(mapSize);
+    mapSize = _roundup_pagesize(static_cast<uint32_t>(mapSize));
     fd = shm_open(fileName.c_str(), O_RDWR, 0666);
     if (fd < 0) {
         std::cerr << "shm_open attach: " << strerror(errno) << " : " << fileName << std::endl;

@@ -4,9 +4,9 @@
 #include <pthread.h>
 #include <cmath>
 #include <cstdio>
-#include <vector>
 #include <cstring>
 #include <iostream>
+#include <vector>
 
 namespace frenzy {
 
@@ -81,9 +81,9 @@ public:
             if (!affinity_list.empty()) {
                 cpu_set_t cpuset;
                 CPU_ZERO(&cpuset);
-                for (const auto& iter : affinity_list) {
-                    if (iter >= 0) {
-                        CPU_SET(iter, &cpuset);
+                for (const auto& core_ : affinity_list) {
+                    if (core_ >= 0) {
+                        CPU_SET(static_cast<size_t>(core_), &cpuset);
                     }
                 }
 

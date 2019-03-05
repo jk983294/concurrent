@@ -130,17 +130,18 @@ public:
     }
 
     size_t size() const noexcept {
-        ssize_t diff = headIndex_.load(std::memory_order_acquire) - tailIndex_.load(std::memory_order_acquire);
+        ssize_t diff = static_cast<ssize_t>(headIndex_.load(std::memory_order_acquire)) -
+                       static_cast<ssize_t>(tailIndex_.load(std::memory_order_acquire));
         if (diff < 0) {
-            diff += capacity_;
+            diff += static_cast<ssize_t>(capacity_);
         }
-        return diff;
+        return static_cast<size_t>(diff);
     }
 
     bool empty() const noexcept { return size() == 0; }
 
     size_t capacity() const noexcept { return capacity_; }
 };
-}
+}  // namespace frenzy
 
 #endif

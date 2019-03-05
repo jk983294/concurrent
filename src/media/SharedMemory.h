@@ -95,59 +95,58 @@ public:
 
 private:
     uint8_t *_map(uint32_t mapSize, bool create_) {
-        int fd = -1;
+        int fd_ = -1;
         mapSize = _roundup_pagesize(mapSize);
         if (create_) {
-            fd = shm_open(filename.c_str(), O_CREAT | O_EXCL | O_RDWR, 0666);
-            if (fd < 0) {
+            fd_ = shm_open(filename.c_str(), O_CREAT | O_EXCL | O_RDWR, 0666);
+            if (fd_ < 0) {
                 // created under /dev/shm/
                 THROW_FRENZY_EXCEPTION(std::string("shm_open: ") << strerror(errno) << " : " << filename);
             }
-            if (ftruncate(fd, META_SIZE + mapSize) < 0) {
-                close(fd);
+            if (ftruncate(fd_, META_SIZE + mapSize) < 0) {
+                close(fd_);
                 shm_unlink(filename.c_str());
                 THROW_FRENZY_EXCEPTION(std::string("ftruncate: ") << strerror(errno) << " : " << filename);
             }
         } else {
-            fd = shm_open(filename.c_str(), O_RDWR, 0666);
-            if (fd < 0) {
+            fd_ = shm_open(filename.c_str(), O_RDWR, 0666);
+            if (fd_ < 0) {
                 THROW_FRENZY_EXCEPTION(std::string("shm_open attach: ") + strerror(errno) + " : " + filename);
             }
         }
 
         struct stat stats;
-        if (fstat(fd, &stats) < 0) {
-            close(fd);
+        if (fstat(fd_, &stats) < 0) {
+            close(fd_);
             if (create_) shm_unlink(filename.c_str());
             THROW_FRENZY_EXCEPTION(std::string("fstat: ") + strerror(errno) + " : " + filename);
         }
         uint32_t size = (mapSize != 0) ? META_SIZE + mapSize : static_cast<uint32_t>(stats.st_size);
         if (static_cast<uint32_t>(stats.st_size) < size) {
-            close(fd);
+            close(fd_);
             if (create_) shm_unlink(filename.c_str());
             THROW_FRENZY_EXCEPTION(std::string("map size exceed file size, ") + std::to_string(size) + " > " +
                                    std::to_string(stats.st_size));
         }
-        void *addr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        void *addr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_, 0);
         if (addr == MAP_FAILED) {
-            close(fd);
+            close(fd_);
             if (create_) shm_unlink(filename.c_str());
             THROW_FRENZY_EXCEPTION(std::string("mmap: ") + strerror(errno));
         }
         meta = reinterpret_cast<Meta *>(addr);
         buffer = reinterpret_cast<uint8_t *>(addr) + META_SIZE;
-        fd = fd;
+        fd = fd_;
 
         Meta dummy;
         if (create_) {
             memset(addr, 0, size);
             dummy.size = mapSize;
-            dummy.ownerPid = getpid();
+            dummy.ownerPid = static_cast<uint64_t>(getpid());
             *meta = dummy;
         } else {
             if (memcmp(meta->magic, &dummy.magic, sizeof(dummy.magic)) != 0) {
-                THROW_FRENZY_EXCEPTION(
-                    std::string("unexpected magic: " + std::string((char *)meta->magic, sizeof(dummy.magic))));
+                THROW_FRENZY_EXCEPTION("unexpected magic: " << std::string((char *)meta->magic, sizeof(dummy.magic)));
             }
         }
         return buffer;
@@ -173,9 +172,9 @@ private:
 
     SharedMemory(const std::string &name_) : filename{name_}, isOwner{true} {
         buffer = _map(0, false);
-        meta->ownerPid = getpid();
+        meta->ownerPid = static_cast<uint64_t>(getpid());
     }
 };
-}
+}  // namespace frenzy
 
 #endif

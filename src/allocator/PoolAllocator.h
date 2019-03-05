@@ -26,7 +26,7 @@ class MemoryPool {
     public:
         Buffer *const next;
 
-        Buffer(Buffer *next) : next(next) {}
+        Buffer(Buffer *next_) : next(next_) {}
 
         T *getBlock(std::size_t index) { return reinterpret_cast<T *>(&data[blockSize * index]); }
     };
@@ -107,6 +107,6 @@ public:
 
     void destroy(pointer p) { p->~T(); }
 };
-}
+}  // namespace frenzy
 
 #endif

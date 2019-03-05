@@ -2,6 +2,7 @@
 #define CONCURRENT_SHMLOG_H
 
 #include <utils/Singleton.h>
+#include "utils/Utils.h"
 #include <cstdint>
 #include <fstream>
 #include <iostream>
@@ -59,15 +60,6 @@ public:
         log(priority, sourceFile, line, formatStr.c_str());
     }
 
-    static std::string GetTimeStr(const struct timespec& ts) {
-        char buf[32];
-        struct tm tmp;
-        localtime_r(&(ts.tv_sec), &tmp);
-        sprintf(buf, "%04d%02d%02d-%02d:%02d:%02d.%06d", tmp.tm_year + 1900, tmp.tm_mon + 1, tmp.tm_mday, tmp.tm_hour,
-                tmp.tm_min, tmp.tm_sec, (int)(ts.tv_nsec / 1000));
-        return buf;
-    }
-
     static std::string getPriorityStr(ShmLogPriority priority) {
         if (priority == SLP_DEBUG) {
             return "debug";
@@ -90,7 +82,7 @@ private:
     static std::string genLogContent(const ShmContent& shmContent) {
         char buf[1024];
         std::string levelStr = ShmLog::getPriorityStr(shmContent.priority);
-        sprintf(buf, "%s %s %s", GetTimeStr(shmContent.ts).c_str(), levelStr.c_str(), shmContent.msg);
+        sprintf(buf, "%s %s %s", timespec2string(shmContent.ts).c_str(), levelStr.c_str(), shmContent.msg);
         return buf;
     }
 
