@@ -10,7 +10,7 @@ namespace frenzy {
 template <typename T>
 class SpscBoundedQueue {
 private:
-    static constexpr size_t CacheLineSize = 128;
+    static constexpr size_t CacheLineSize = 64;
     // one cache line contains #PaddingCountOfT elements of T
     static constexpr size_t PaddingCountOfT = (CacheLineSize - 1) / sizeof(T) + 1;
 
@@ -141,6 +141,31 @@ public:
     bool empty() const noexcept { return size() == 0; }
 
     size_t capacity() const noexcept { return capacity_; }
+
+    /**
+     * this call must cooperate with advance_head
+     * @return
+     */
+    T& get_cell(size_t& nextHead) noexcept {
+        auto const head = headIndex_.load(std::memory_order_relaxed);
+        nextHead = head + 1;
+        if (nextHead == capacity_) {
+            nextHead = 0;
+        }
+
+        while (nextHead == tailIndex_.load(std::memory_order_acquire))
+            ;
+
+        return slots_[head + PaddingCountOfT];
+    }
+
+    /**
+     * this call must follow get_cell(), basically get_cell() get space to produce
+     * after produce, you need to call advance_head() to notify consumer to consume
+     */
+    void advance_head(size_t nextHead){
+        headIndex_.store(nextHead, std::memory_order_release);
+    }
 };
 }  // namespace frenzy
 
