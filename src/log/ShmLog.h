@@ -48,7 +48,7 @@ public:
      */
     bool initShm(std::string logShmName = "", int maxLogCount = DefaultShmLogEntryCount);
 
-    bool open(std::string outfileName = "", ShmLogPriority priority = SLP_INFO, bool print = true);
+    bool open(std::string outfileName="", ShmLogPriority priority=SLP_INFO, bool print=true, bool printSource_=false);
 
     ShmLogPriority getPriority() const { return priority_; }
     void setPriority(ShmLogPriority p) { priority_ = p; }
@@ -82,7 +82,7 @@ private:
     static std::string genLogContent(const ShmContent& shmContent) {
         char buf[1024];
         std::string levelStr = ShmLog::getPriorityStr(shmContent.priority);
-        sprintf(buf, "%s %s %s", timespec2string(shmContent.ts).c_str(), levelStr.c_str(), shmContent.msg);
+        sprintf(buf, "%s[%s]%s", timespec2string(shmContent.ts).c_str(), levelStr.c_str(), shmContent.msg);
         return buf;
     }
 
@@ -100,6 +100,7 @@ public:
     std::ofstream* ofs{nullptr};   // this should be destructed
     bool shmInited{false};
     bool opened_{false};  // prevent open shm multi time
+    bool printSource{true};
 
     std::thread dumpThread;
 };

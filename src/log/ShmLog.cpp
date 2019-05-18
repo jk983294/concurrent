@@ -49,7 +49,7 @@ bool ShmLog::initShm(string logShmName, int shmEntryCount) {
     return true;
 }
 
-bool ShmLog::open(string outfileName, ShmLogPriority priority, bool print) {
+bool ShmLog::open(string outfileName, ShmLogPriority priority, bool print, bool printSource_) {
     if (!shmInited) {
         initShm();
     }
@@ -65,8 +65,10 @@ bool ShmLog::open(string outfileName, ShmLogPriority priority, bool print) {
         outfileName = "std stream";
     }
     priority_ = priority;
+    printSource = printSource_;
     opened_ = true;
-    cout << "ShmLog::open, outfile name:" << outfileName << endl;
+
+    cout << "ShmLog::open, outfile name: " << outfileName << endl;
 
     if (pMeta == nullptr || shmPath.empty()) {
         return true;
@@ -189,7 +191,7 @@ void ShmLog::log(ShmLogPriority priority, const char* sourceFile, int line, cons
     va_start(argp, formatStr);
     int n = vsnprintf(buf, MaxLogLength, formatStr, argp);
     va_end(argp);
-    if (-1 == n)
+    if (-1 == n || !printSource)
         buf[MaxLogLength - 1] = '\0';
     else {
         buf += n;
