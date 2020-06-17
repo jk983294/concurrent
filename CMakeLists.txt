@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 
 project(concurrent)
 
+set(CMAKE_INSTALL_PREFIX "/opt/version/latest/")
+
 # boost lib
 find_package( Boost 1.58.0 COMPONENTS system thread program_options filesystem )
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
@@ -21,10 +23,14 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include_directories(src)
 include_directories(exp)
 include_directories(SYSTEM "/home/$USER/include")
-include_directories(SYSTEM "/opt/version/latest/3rd/include")
-include_directories(SYSTEM "/opt/version/latest/zergtool/include")
+include_directories(SYSTEM "/opt/3rd/common/include/")
+include_directories(SYSTEM "zergtool/include")
+
+link_directories(/opt/3rd/common/lib)
 
 add_subdirectory(src)
+add_subdirectory(zergtool)
 #add_subdirectory(exp)
 add_subdirectory(example)
 add_subdirectory(test)
+

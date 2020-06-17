@@ -15,7 +15,7 @@ constexpr int MaxLogLength = 256;
 constexpr int DefaultShmLogEntryCount = 2 * 1024 * 1024;
 enum ShmLogPriority : uint8_t { SLP_DEBUG = 01, SLP_INFO = 02, SLP_WARNING = 03, SLP_ERROR = 04, SLP_CRITICAL = 05 };
 
-struct __attribute__((__packed__)) ShmContent {
+struct ShmContent {
     struct timespec ts;
     ShmLogPriority priority;
     char msg[MaxLogLength];

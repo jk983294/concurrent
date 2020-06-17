@@ -15,7 +15,7 @@ public:
 
     public:
         Node() : next(nullptr){};
-    } __attribute__((__packed__));
+    };
 
 private:
     std::atomic<Node*> tail;

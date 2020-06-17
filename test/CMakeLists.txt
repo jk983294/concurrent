@@ -6,4 +6,4 @@ enable_testing()
 
 add_executable(all.test ${tests})
 target_link_libraries(all.test frenzy)
-target_link_libraries(all.test ${Boost_LIBRARIES} tbb pthread rt)
+target_link_libraries(all.test ${Boost_LIBRARIES} pthread rt)

@@ -10,5 +10,11 @@ int main() {
 
     Performance<frenzy::FastPoolAllocator<int>> perf1;
     perf1.run();
+
+    MapPerformance<frenzy::PoolAllocator<std::pair<const int, int>, batchSize>> mperf;
+    mperf.run();
+
+    MapPerformance<frenzy::FastPoolAllocator<std::pair<const int, int>>> mperf1;
+    mperf1.run();
     return 0;
 }

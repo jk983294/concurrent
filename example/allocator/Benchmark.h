@@ -61,22 +61,6 @@ class Performance {
     }
 
     template <typename Container>
-    double test_map() {
-        Container container;
-        PerformanceTimer timer;
-        timer.start();
-
-        for (int i = 0; i < numberOfIterations; i++) {
-            int size = 0;
-            while (size < numberOfIterations) container.insert(std::pair<char, int>(size++, size));
-            for (; size > numberOfIterations; size--) container.erase(size);
-        }
-
-        timer.stop();
-        return timer.toSeconds();
-    }
-
-    template <typename Container>
     double test_set() {
         Container container;
         PerformanceTimer timer;
@@ -105,6 +89,40 @@ class Performance {
                   << " seconds." << std::endl
                   << std::endl;
 
+        std::cout << "Set - Default STL Allocator : " << std::fixed << test_set<std::set<int, std::less<int>>>()
+                  << " seconds." << std::endl;
+        std::cout << "Set - Tested Allocator : " << std::fixed << test_set<std::set<int, std::less<int>, Alloc>>()
+                  << " seconds." << std::endl
+                  << std::endl;
+    }
+
+public:
+    void run() {
+        std::cout << "Allocator performance measurement example" << std::endl;
+        runTests();
+    }
+};
+
+
+template <typename Alloc>
+class MapPerformance {
+    template <typename Container>
+    double test_map() {
+        Container container;
+        PerformanceTimer timer;
+        timer.start();
+
+        for (int i = 0; i < numberOfIterations; i++) {
+            int size = 0;
+            while (size < numberOfIterations) container.insert(std::pair<char, int>(size++, size));
+            for (; size > numberOfIterations; size--) container.erase(size);
+        }
+
+        timer.stop();
+        return timer.toSeconds();
+    }
+
+    void runTests() {
         std::cout << "Map - Default STL Allocator : " << std::fixed << test_map<std::map<int, int, std::less<int>>>()
                   << " seconds." << std::endl;
         std::cout << "Map - Tested Allocator : " << std::fixed << test_map<std::map<int, int, std::less<int>, Alloc>>()
@@ -115,13 +133,7 @@ class Performance {
                   << test_map<std::unordered_map<int, int>>() << " seconds." << std::endl;
         std::cout << "unordered_map - Tested Allocator : " << std::fixed
                   << test_map<std::unordered_map<int, int, std::hash<int>, std::equal_to<int>,
-                                                 frenzy::FastPoolAllocator<std::pair<int, int>>>>()
-                  << " seconds." << std::endl
-                  << std::endl;
-
-        std::cout << "Set - Default STL Allocator : " << std::fixed << test_set<std::set<int, std::less<int>>>()
-                  << " seconds." << std::endl;
-        std::cout << "Set - Tested Allocator : " << std::fixed << test_set<std::set<int, std::less<int>, Alloc>>()
+                          frenzy::FastPoolAllocator<std::pair<const int, int>>>>()
                   << " seconds." << std::endl
                   << std::endl;
     }
