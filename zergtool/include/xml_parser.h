@@ -191,6 +191,14 @@ public:
         return attributes;
     }
 
+    bool hasAttr(const std::string& key) const {
+        auto attr = p_node->first_attribute(key.c_str());
+        if (attr)
+            return true;
+        else
+            return false;
+    }
+
     //! get a string. default is ""
     std::string getAttrOrThrow(const std::string& key) const {
         auto attr = p_node->first_attribute(key.c_str());
