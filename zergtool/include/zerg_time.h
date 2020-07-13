@@ -39,6 +39,7 @@ long utime();
 uint32_t nano2date(uint64_t nano = 0);
 
 std::string time_t2string(const time_t ct);
+
 std::string ntime2string(uint64_t nano);
 time_t time_t_from_ymdhms(int ymd, int hms);
 uint64_t ntime_from_double(double ymdhms);
@@ -61,6 +62,9 @@ int64_t now_HMS();
 
 inline uint64_t rdtsc();
 inline uint64_t rdtscp();
+
+inline int64_t time_t2hms(const time_t ct);
+inline void split_hms(int hms, int& h, int& m, int& s);
 
 /**
  * "23:59:59" to 235959
@@ -289,6 +293,19 @@ inline std::string time_t2string(const time_t ct) {
                   tm.tm_hour, tm.tm_min, tm.tm_sec);
     return string(buffer);
 }
+
+inline int64_t time_t2hms(const time_t ct) {
+    struct tm tm;
+    localtime_r(&ct, &tm);
+    return (tm.tm_hour * 10000 + tm.tm_min * 100 + tm.tm_sec);
+}
+
+inline void split_hms(int hms, int& h, int& m, int& s) {
+    h = hms / 10000;
+    m = (hms % 10000) / 100;
+    s = hms % 100;
+}
+
 inline std::string ntime2string(uint64_t nano) {
     time_t epoch = static_cast<long>(nano / oneSecondNano);
     return time_t2string(epoch);
@@ -442,8 +459,8 @@ inline std::string replace_time_placeholder(const std::string& str, int d = 0, i
     std::string year, month, day, timestamp, timestamp_sss;
     char buffer[100], time_buffer[100];
     if (d <= 0) {
-        time_t t = time(nullptr);
-        struct tm* time_info = localtime(&t);
+        time_t t_ = time(nullptr);
+        struct tm* time_info = localtime(&t_);
         strftime(buffer, 80, "%Y", time_info);
         year = buffer;
         strftime(buffer, 80, "%m", time_info);
@@ -464,8 +481,8 @@ inline std::string replace_time_placeholder(const std::string& str, int d = 0, i
         sprintf(time_buffer, "%09d", t);
         timestamp_sss = time_buffer;
     } else {
-        time_t t = time(nullptr);
-        struct tm* timeinfo = localtime(&t);
+        time_t t_ = time(nullptr);
+        struct tm* timeinfo = localtime(&t_);
         strftime(time_buffer, 80, "%H%M%S", timeinfo);
         timestamp = time_buffer;
         timeval tt;
