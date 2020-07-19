@@ -14,6 +14,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "zerg_clock.h"
 #include "zerg_exception.h"
@@ -127,17 +128,29 @@ inline std::vector<std::string> ListDir(const std::string& directory) {
     return ret;
 }
 
+inline std::string FileExpandUser(const std::string& name) {
+    if (name.empty() || name[0] != '~') return name;
+    char user[128];
+    getlogin_r(user, 127);
+    return std::string{"/home/"} + user + name.substr(1);
+}
+
 inline std::string GetAbsolutePath(const std::string& rawPath) {
-    if (rawPath.empty()) {
+    if (rawPath.empty() || rawPath == ".") {
         char* pwd = getcwd(nullptr, 0);
         std::string ret = pwd;
         free(pwd);
         return ret;
+    } else if (rawPath[0] == '~') {
+        return FileExpandUser(rawPath);
     } else if (rawPath[0] != '/') {
         char* pwd = getcwd(nullptr, 0);
         std::string cur = pwd;
         free(pwd);
-        return cur + '/' + rawPath;
+        if (rawPath.find("./") == 0)
+            return cur + rawPath.substr(1);
+        else
+            return cur + '/' + rawPath;
     }
     return rawPath;
 }
@@ -186,13 +199,6 @@ inline std::string Basename(const std::string& fullname) {
     char p[256];
     strncpy(p, fullname.c_str(), sizeof(p) - 1);
     return string{basename(p)};
-}
-
-inline std::string FileExpandUser(const std::string& name) {
-    if (name.empty() || name[0] != '~') return name;
-    char user[128];
-    getlogin_r(user, 127);
-    return std::string{"/home/"} + user + name.substr(1);
 }
 
 inline bool IsDirReadable(const std::string& dirname) { return (access(dirname.c_str(), R_OK) != -1); }
@@ -320,21 +326,50 @@ inline SoInfo loadSO(const std::string& so_path, char type = RTLD_LAZY) {
     return info;
 }
 
-inline int GetInode(const std::string& path) {
-    auto fd = open(path.c_str(), O_RDONLY);
-    if (fd < 0) {
-        return -1;
+inline bool read_trading_days(const std::string& day_file_path, std::vector<int>& days) {
+    days.clear();
+    auto path = FileExpandUser(day_file_path);
+    std::ifstream ifs(path, std::ifstream::in);
+
+    if (ifs.is_open()) {
+        string s;
+        while (getline(ifs, s)) {
+            ztool::Trim(s);
+            if (!s.empty() && std::isdigit(s[0])) {
+                days.push_back(std::atoi(s.c_str()));
+            }
+        }
+        ifs.close();
+    } else {
+        return false;
     }
-    struct stat file_stat;
-    int ret;
-    ret = fstat(fd, &file_stat);
-    if (ret < 0) {
-        close(fd);
-        // error getting file stat
-        return -1;
+    std::sort(days.begin(), days.end());
+    return true;
+}
+
+// like /tmp/*.csv
+inline std::unordered_map<std::string, std::string> path_wildcard(const std::string& path) {
+    std::unordered_map<std::string, std::string> ret;
+    std::string base_name = ztool::Basename(path);
+    auto pos = base_name.find('*');
+    if (pos != std::string::npos) {
+        std::string prefix = base_name.substr(0, pos);
+        std::string suffix = base_name.substr(pos + 1);
+        std::string dir_path = ztool::Dirname(path) + "/";
+        DIR* dir = opendir(dir_path.c_str());
+        if (dir) {
+            struct dirent* ent;
+            while ((ent = readdir(dir)) != nullptr) {
+                string file_name = ent->d_name;
+                if (ztool::start_with(file_name, prefix) && ztool::end_with(file_name, suffix)) {
+                    string matched = file_name.substr(prefix.size(), file_name.size() - prefix.size() - suffix.size());
+                    ret.insert({matched, dir_path + file_name});
+                }
+            }
+            closedir(dir);
+        }
     }
-    close(fd);
-    return file_stat.st_ino;
+    return ret;
 }
 
 }  // namespace ztool

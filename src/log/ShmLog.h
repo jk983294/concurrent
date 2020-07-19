@@ -2,12 +2,12 @@
 #define CONCURRENT_SHMLOG_H
 
 #include <utils/Singleton.h>
-#include "utils/Utils.h"
 #include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <thread>
+#include "utils/Utils.h"
 
 namespace frenzy {
 
@@ -48,7 +48,8 @@ public:
      */
     bool initShm(std::string logShmName = "", int maxLogCount = DefaultShmLogEntryCount);
 
-    bool open(std::string outfileName="", ShmLogPriority priority=SLP_INFO, bool print=true, bool printSource_=false);
+    bool open(std::string outfileName = "", ShmLogPriority priority = SLP_INFO, bool print = true,
+              bool printSource_ = false);
 
     ShmLogPriority getPriority() const { return priority_; }
     void setPriority(ShmLogPriority p) { priority_ = p; }
@@ -108,11 +109,11 @@ public:
 }  // namespace frenzy
 
 #define SHM_PERFORM_LOG(priority, file, line, format, ...)                               \
-    {                                                                                    \
+    do {                                                                                 \
         if (frenzy::ShmLog::instance().can_log(priority)) {                              \
             frenzy::ShmLog::instance().log(priority, file, line, format, ##__VA_ARGS__); \
         }                                                                                \
-    }
+    } while (false)
 
 #define LOG_SET_PRIORITY(priority) frenzy::ShmLog::instance().setPriority(priority);
 #define LOG_DEBUG(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_DEBUG, __FILE__, __LINE__, args)
