@@ -372,6 +372,43 @@ inline std::unordered_map<std::string, std::string> path_wildcard(const std::str
     return ret;
 }
 
+/**
+ *
+ * @param dir path to traverse
+ * @param func the callback function to process each file
+ * @param is_enter_sub
+ * @param need_folder
+ */
+inline void dir_traversal(const std::string& dir, void (*func)(const std::string&), bool is_enter_sub = false,
+                          bool need_folder = false) {
+    std::string full_path;
+    if (dir.empty())
+        full_path = "";
+    else {
+        if (dir[dir.size() - 1] == '/')
+            full_path = dir;
+        else
+            full_path = dir + "/";
+    }
+    DIR* d;
+    struct dirent* file;
+    struct stat sb {};
+    if (!(d = opendir(full_path.c_str()))) return;
+    while ((file = readdir(d)) != nullptr) {
+        if (file->d_name[0] == '.') continue;
+        std::string fname = full_path + file->d_name;
+        stat(fname.c_str(), &sb);
+        if (S_ISDIR(sb.st_mode)) {
+            if (is_enter_sub)
+                dir_traversal(fname, func, is_enter_sub);
+            else if (need_folder)
+                func(std::string("\x01") + fname);
+        } else
+            func(fname);
+    }
+    closedir(d);
+}
+
 }  // namespace ztool
 
 #endif

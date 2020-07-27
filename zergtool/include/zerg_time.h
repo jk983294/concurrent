@@ -60,6 +60,10 @@ std::string now_local_string();
 int64_t now_cob();
 int64_t now_HMS();
 
+inline int year_from_cob(int cob) { return cob / 10000; }
+inline int month_from_cob(int cob) { return (cob / 100) % 100; }
+inline int day_from_cob(int cob) { return cob % 100; }
+
 inline uint64_t rdtsc();
 inline uint64_t rdtscp();
 
