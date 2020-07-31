@@ -122,4 +122,10 @@ public:
 #define LOG_ERROR(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_ERROR, __FILE__, __LINE__, args)
 #define LOG_CRITICAL(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_CRITICAL, __FILE__, __LINE__, args)
 
+#define INIT_DEFAULT_SHM_LOG()                       \
+    do {                                             \
+        frenzy::ShmLog::instance().initShm("", 100); \
+        frenzy::ShmLog::instance().open();           \
+    } while (false)
+
 #endif
