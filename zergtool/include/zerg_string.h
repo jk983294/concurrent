@@ -17,6 +17,8 @@
 #include <vector>
 #include "string_split.h"
 
+using std::string;
+
 namespace ztool {
 inline std::vector<std::string> split(const std::string& str, char delimiter = ' ');
 inline std::vector<std::string> splits(const std::string& s, const char* separator = " |,");
@@ -40,6 +42,7 @@ inline std::string get_bool_string(int value);
 inline bool start_with(const std::string& s, const std::string& p);
 inline bool end_with(const std::string& s, const std::string& p);
 inline std::string GenerateRandomString(size_t length, uint32_t seed = 0);
+inline std::vector<std::string> expand_names(const std::string& str);
 
 inline int code_convert(const char* from_charset, const char* to_charset, char* inBuf, size_t inLen, char* outBuf,
                         size_t outLen) {
@@ -247,6 +250,47 @@ inline std::string GenerateRandomString(size_t length, uint32_t seed) {
     s[length] = '\0';
     auto ret = std::string(s);
     free(s);
+    return ret;
+}
+
+inline std::vector<std::string> expand_names(const std::string& str) {
+    std::vector<std::string> ret;
+    auto name_patterns = ztool::split(str, ',');
+    int tmp_num = 0;
+    for (auto& pattern : name_patterns) {
+        auto p1 = pattern.find('[');
+        if (p1 == std::string::npos) {
+            ret.push_back(pattern);
+            tmp_num++;
+        } else {
+            auto p2 = pattern.find(']');
+            if (p2 == string::npos || p2 < p1) {
+                ret.push_back(pattern);
+                tmp_num++;
+            } else {
+                string prefix = pattern.substr(0, p1);
+                string suffix = pattern.substr(p2 + 1);
+                string wildcards = pattern.substr(p1 + 1, p2 - p1 - 1);
+                if (wildcards.find('-') != string::npos) {
+                    auto lets = ztool::split(wildcards, '-');
+                    if (lets.size() == 2) {
+                        int start_idx = std::stoi(lets[0]);
+                        int end_idx = std::stoi(lets[1]);
+                        for (int i = start_idx; i <= end_idx; ++i) {
+                            ret.push_back(prefix + std::to_string(i) + suffix);
+                            tmp_num++;
+                        }
+                    } else {
+                        ret.push_back(pattern);
+                        tmp_num++;
+                    }
+                } else {
+                    ret.push_back(pattern);
+                    tmp_num++;
+                }
+            }
+        }
+    }
     return ret;
 }
 }  // namespace ztool
