@@ -52,6 +52,10 @@ struct ZergFileLog {
         fflush(m_fp);
     }
 
+    void PureWrite(const char *content_) { fputs(content_, m_fp); }
+
+    void WriteNewLine() { fputs("\n", m_fp); }
+
     void Flush() {
         if (m_fp != nullptr) fflush(m_fp);
     }
