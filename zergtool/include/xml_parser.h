@@ -282,9 +282,10 @@ public:
         if (!attr) {
             return defaultValue;
         }
-        if (std::string(attr->value()) == "true")
+        std::string attr_val_(attr->value());
+        if (attr_val_ == "true" || attr_val_ == "True" || attr_val_ == "1")
             return true;
-        else if (std::string(attr->value()) == "false")
+        else if (attr_val_ == "false" || attr_val_ == "False" || attr_val_ == "0")
             return false;
         else
             return defaultValue;
