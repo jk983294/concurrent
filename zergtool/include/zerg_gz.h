@@ -44,6 +44,8 @@ template <typename T>
 struct GzBufferReader {
     T* buffer{nullptr};
     int len = 1000;
+    int current_total{0};
+    int next_idx{0};
     gzFile zp{nullptr};
     std::string path;
 
@@ -71,10 +73,21 @@ struct GzBufferReader {
         if (ret_val < 0) {
             return -1;
         }
-        return ret_val / sizeof(T);
+        current_total = ret_val / sizeof(T);
+        next_idx = 0;
+        return current_total;
     }
 
     bool iseof() { return gzeof(zp); }
+
+    T* get_one() {
+        if(next_idx < current_total) return buffer + next_idx;
+        else return nullptr;
+    }
+
+    void advance_one() {
+        ++next_idx;
+    }
 
 private:
     void init() { buffer = new T[len]; }
