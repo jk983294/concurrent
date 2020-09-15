@@ -200,8 +200,13 @@ inline std::string GetProcCmdline(pid_t process) {
 }
 
 inline bool EnsureOneInstance(const std::string& program) {
-    auto pid = GetProgramPid(program);
-    return (!IsProcessExist(pid));
+    int currentPid = getpid();
+    long filePid = GetProgramPid(program);
+    if (currentPid == filePid) return true;
+    if (!IsProcessExist(filePid)) return true;
+    string fileCmdLine = GetProcCmdline(filePid);
+    string cmdLine = GetProcCmdline(currentPid);
+    return cmdLine != fileCmdLine;
 }
 
 inline bool EnsureOneInstanceFromRun(const std::string& program) {
