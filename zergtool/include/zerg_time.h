@@ -16,6 +16,10 @@ using std::string;
 
 namespace ztool {
 
+constexpr int day_night_split = 180000000;  // ms 18:00:00 000
+constexpr int day_start_split = 60000000;   // ms 6:00:00 000
+constexpr int one_day_long = 240000000;
+
 double timespec2double(const timespec& ts);
 
 double timeval2double(const timeval& ts);
