@@ -23,6 +23,7 @@
 #include "zerg_stopwatch.h"
 #include "zerg_string.h"
 #include "zerg_taplist.h"
+#include "zerg_template.h"
 #include "zerg_time.h"
 #include "zerg_unix.h"
 #include "zerg_util.h"
