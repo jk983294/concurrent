@@ -22,6 +22,7 @@ using std::string;
 namespace ztool {
 inline std::vector<std::string> split(const std::string& str, char delimiter = ' ');
 inline std::vector<std::string> splits(const std::string& s, const char* separator = " |,");
+inline std::pair<std::string, std::string> SplitInstrumentID(const std::string& str);
 inline std::string gbk2utf(const char* source);
 inline std::string gbk2utf(const std::string& str);
 inline std::string ToUpperCaseCopy(const std::string& s);
@@ -216,6 +217,18 @@ inline std::vector<std::string> splits(const std::string& s, const char* separat
     auto split_result = ztool::SplitString(s, separator);
     for (uint i = 0; i < split_result.size(); ++i) {
         ret.push_back(ztool::TrimCopy(split_result.get(i)));
+    }
+    return ret;
+}
+
+inline std::pair<std::string, std::string> SplitInstrumentID(const std::string& str) {
+    std::pair<std::string, std::string> ret;
+    auto idx = str.find('.');
+    if (idx == std::string::npos) {
+        ret.first = str;
+    } else {
+        ret.first = str.substr(0, idx);
+        ret.second = str.substr(idx + 1);
     }
     return ret;
 }

@@ -31,3 +31,10 @@ TEST_CASE("expand_names", "[expand_names]") {
     expected = {"f]1["};
     REQUIRE(ret == expected);
 }
+
+TEST_CASE("split instrument ID and market", "[utils]") {
+    char str[] = "399001.sse";
+    auto [a, b] = ztool::SplitInstrumentID(str);
+    REQUIRE(a == "399001");
+    REQUIRE(b == "sse");
+}

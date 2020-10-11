@@ -44,13 +44,6 @@ TEST_CASE("FOR_EACH_RANGE", "[for each range]") {
     REQUIRE(sum == 14);
 }
 
-TEST_CASE("split instrument ID and market", "[utils]") {
-    char str[] = "399001.sse";
-    char *a{nullptr}, *b{nullptr};
-    ztool::SplitInstrumentID(str, a, b);
-    REQUIRE(strcmp(b, "sse") == 0);
-}
-
 TEST_CASE("replace time holder", "[utils]") {
     ztool::Clock<> clock;
     clock.Set(100);

@@ -159,12 +159,12 @@ const double TradingDay = 1.1;
 }  // namespace zergtime
 
 inline uint64_t HumanReadableMicrosecond(const std::string& str) {
-    const static uint64_t _second = 1000ull * 1000ull;
-    const static uint64_t _minute = 60ull * _second;
-    const static uint64_t _hour = 60ull * _minute;
+    constexpr uint64_t _second = 1000ull * 1000ull;
+    constexpr uint64_t _minute = 60ull * _second;
+    constexpr uint64_t _hour = 60ull * _minute;
     std::string str_ = str;
     ztool::ToLowerCase(str_);
-    uint64_t interval;
+    uint64_t interval = 0;
     if (str_.find("milliseconds") != std::string::npos) {
         interval = 1000ull * std::stoull(str_.substr(0, str_.find("milliseconds")));
     } else if (str_.find("millisecond") != std::string::npos) {
@@ -190,7 +190,7 @@ inline uint64_t HumanReadableMicrosecond(const std::string& str) {
     } else if (str_.find("second") != std::string::npos) {
         interval = _second * std::stoull(str_.substr(0, str_.find("second")));
     } else if (str_.find("sec") != std::string::npos) {
-        interval = _second * std::stoull(str_.substr(0, str_.find("sec")).c_str());
+        interval = _second * std::stoull(str_.substr(0, str_.find("sec")));
     } else if (str_.find("quarter") != std::string::npos) {
         interval = 15ull * _minute * std::stoull(str_.substr(0, str_.find("quarter")));
     } else if (str_.find("us") != std::string::npos) {
@@ -203,7 +203,7 @@ inline uint64_t HumanReadableMicrosecond(const std::string& str) {
         interval = _second * std::stoull(str_.substr(0, str_.find('s')));
     } else if (str_.find('h') != std::string::npos) {
         interval = _hour * std::stoull(str_.substr(0, str_.find('h')));
-    } else {
+    } else if (not str.empty()) {
         interval = std::stoull(str_) * 1000ull;
     }
     return interval;

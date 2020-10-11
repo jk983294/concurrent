@@ -136,20 +136,6 @@ inline ZergTimezone GetZergTimezone() {
     return ret;
 }
 
-inline int SplitInstrumentID(char* id, char*& instrument, char*& exchange) {
-    char* p = id;
-    instrument = id;
-    while (*p) {
-        if (*p == '.') {
-            *p = '\0';
-            exchange = p + 1;
-            return 0;
-        }
-        ++p;
-    }
-    return 0;
-}
-
 inline int WriteProgramPid(const std::string& program) {
     pid_t pid = getpid();
     std::ofstream ofs;
