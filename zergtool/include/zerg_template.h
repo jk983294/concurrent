@@ -30,6 +30,18 @@ template <>
 inline void GetParamFromStr<bool>(const string& str, bool& out) {
     out = (str == "true" || str == "1" || str == "True");
 }
+
+template <typename T>
+inline T GetParamFromStrByType(const string& str) {
+    T out;
+    GetParamFromStr<T>(str, out);
+    return out;
+}
+inline int32_t GetInt32FromStr(const string& str) { return GetParamFromStrByType<int32_t>(str); }
+inline float GetFloatFromStr(const string& str) { return GetParamFromStrByType<float>(str); }
+inline double GetDoubleFromStr(const string& str) { return GetParamFromStrByType<double>(str); }
+inline bool GetBoolFromStr(const string& str) { return GetParamFromStrByType<bool>(str); }
+
 }  // namespace ztool
 
 #endif

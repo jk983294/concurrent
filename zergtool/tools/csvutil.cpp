@@ -1,11 +1,11 @@
 #include <getopt.h>
+#include <ztool.h>
 #include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <ztool.h>
 
 using namespace std;
 
@@ -31,7 +31,7 @@ void help() {
     cout << "  -y                                    sort mode, use text cmp instead of default numeric" << endl;
     cout << "  -n                                    column number, index from 0" << endl;
     cout << "  -f                                    field name" << endl;
-    cout << "  -c                                    filter condition, like (>5, <3), only support numeric, for "
+    cout << "  -c                                    filter condition, like ('>5', '<3'), only support numeric, for "
             "text filter, use grep"
          << endl;
     cout << "usage:\n";
@@ -39,7 +39,7 @@ void help() {
     cout << "  csvutil -t sort -p a.csv -n 2" << endl;
     cout << "  csvutil -t extract -p a.csv -f a,c" << endl;
     cout << "  csvutil -t extract -p a.csv -n 0,2" << endl;
-    cout << "  csvutil -t filter -p a.csv -f a -c >3" << endl;
+    cout << "  csvutil -t filter -p a.csv -f a -c '>3'" << endl;
     cout << "  csvutil -t filter -p a.csv -f a -c !=b" << endl;
     cout << "  csvutil -t filter -p a.csv -f a -c %2=1" << endl;
 }
@@ -86,10 +86,9 @@ int main(int argc, char** argv) {
                 filter_condition = std::string(optarg);
                 break;
             case 'h':
+            default:
                 help();
                 return 0;
-            default:
-                abort();
         }
     }
 
@@ -110,9 +109,7 @@ int main(int argc, char** argv) {
     }
 }
 
-enum CmpType {
-    Unknown, Great, Less, GreatEqual, LessEqual, InEqual, LineModulus
-};
+enum CmpType { Unknown, Great, Less, GreatEqual, LessEqual, InEqual, LineModulus };
 
 void handle_filter() {
     if (field_idx.empty() || filter_condition.empty()) {
@@ -127,29 +124,29 @@ void handle_filter() {
     CmpType cmpType = CmpType::Unknown;
     string operand;
     int modulus1 = 0, modulus2 = 0;
-    if (filter_condition.substr(0, 2) == ">=" ){
+    if (filter_condition.substr(0, 2) == ">=") {
         cmpType = CmpType::GreatEqual;
         operand = filter_condition.substr(2);
-    } else if (filter_condition.substr(0, 2) == "<=" ) {
+    } else if (filter_condition.substr(0, 2) == "<=") {
         cmpType = CmpType::LessEqual;
         operand = filter_condition.substr(2);
-    } else if (filter_condition.substr(0, 2) == "!=" ) {
+    } else if (filter_condition.substr(0, 2) == "!=") {
         cmpType = CmpType::InEqual;
         operand = filter_condition.substr(2);
-    } else if (filter_condition.substr(0, 1) == ">" ) {
+    } else if (filter_condition.substr(0, 1) == ">") {
         cmpType = CmpType::Great;
         operand = filter_condition.substr(1);
-    } else if (filter_condition.substr(0, 1) == "<" ) {
+    } else if (filter_condition.substr(0, 1) == "<") {
         cmpType = CmpType::Less;
         operand = filter_condition.substr(1);
-    } else if (filter_condition.substr(0, 1) == "%" ) {
+    } else if (filter_condition.substr(0, 1) == "%") {
         cmpType = CmpType::LineModulus;
         auto tmp_lets = ztool::split(filter_condition.substr(1), '=');
         modulus1 = std::stoi(tmp_lets.front());
         modulus2 = std::stoi(tmp_lets.back());
     }
 
-    if (cmpType == CmpType::Unknown)  {
+    if (cmpType == CmpType::Unknown) {
         cerr << "unknown filter direction " << filter_condition[0] << endl;
         return;
     }
@@ -157,10 +154,10 @@ void handle_filter() {
     bool cmp_rhs_value = true;
     int operand_idx = -1;
     double filter_val = 0;
-    if(std::isalpha(operand[0])) {
+    if (std::isalpha(operand[0])) {
         cmp_rhs_value = false;
         operand_idx = get_field_idx(operand);
-        if(operand_idx < 0) return;
+        if (operand_idx < 0) return;
     } else {
         filter_val = std::stod(filter_condition.substr(1));
     }
@@ -172,15 +169,14 @@ void handle_filter() {
         vector<string> lets = split(line, delimiter);
         double val = std::stod(lets[left_field_idx]);
         double operand_val = filter_val;
-        if(!cmp_rhs_value) {
+        if (!cmp_rhs_value) {
             operand_val = std::stod(lets[operand_idx]);
         }
-        if ((cmpType == CmpType::Great && val > operand_val)
-            || (cmpType == CmpType::Less && val < operand_val)
-               || (cmpType == CmpType::GreatEqual && val >= operand_val)
-                  || (cmpType == CmpType::LessEqual && val <= operand_val)
-                     || (cmpType == CmpType::InEqual && val != operand_val)
-                        || (cmpType == CmpType::LineModulus && line_number % modulus1 == modulus2))
+        if ((cmpType == CmpType::Great && val > operand_val) || (cmpType == CmpType::Less && val < operand_val) ||
+            (cmpType == CmpType::GreatEqual && val >= operand_val) ||
+            (cmpType == CmpType::LessEqual && val <= operand_val) ||
+            (cmpType == CmpType::InEqual && val != operand_val) ||
+            (cmpType == CmpType::LineModulus && line_number % modulus1 == modulus2))
             cout << line << endl;
     }
 }
@@ -265,7 +261,7 @@ bool parse_header() {
     if (!field_names.empty()) {
         for (const auto& name : field_names) {
             int tmp_idx = get_field_idx(name);
-            if(tmp_idx < 0) return false;
+            if (tmp_idx < 0) return false;
             field_idx.push_back(tmp_idx);
         }
     }
