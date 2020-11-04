@@ -101,7 +101,8 @@ struct Admin {
             strcpy(pAdminShm->issuer, pw->pw_name);
         }
         pAdminShm->update_time = ztool::GetMicrosecondsSinceEpoch();
-        printf("issue cmd '%s' from %s at %ld success\n", pAdminShm->cmd, pAdminShm->issuer, pAdminShm->update_time);
+        auto time_str = ztool::time_t2string(pAdminShm->update_time / 1000000);
+        printf("issue cmd '%s' from %s at %s success\n", pAdminShm->cmd, pAdminShm->issuer, time_str.c_str());
     }
 
     string ReadCmd() {

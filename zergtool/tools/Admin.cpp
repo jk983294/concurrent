@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <zerg_admin.h>
 #include <iomanip>
+#include <linenoise.hpp>
 
 using namespace std;
 using namespace ztool;
@@ -49,10 +50,21 @@ int main(int argc, char** argv) {
     }
 
     if (continous) {
-        while (1) {
-            cout << "input your cmd:" << endl;
-            std::getline(cin, cmd);
-            admin->IssueCmd(cmd);
+        linenoise::SetMultiLine(false);
+        linenoise::SetHistoryMaxLen(100);
+        while (true) {
+            std::string line;
+
+            auto quit = linenoise::Readline("> ", line);
+
+            if (quit) {
+                break;
+            }
+
+            admin->IssueCmd(line);
+            cout << "_" << line << "_" << endl;
+
+            linenoise::AddHistory(line.c_str());
         }
     } else {
         admin->IssueCmd(cmd);
