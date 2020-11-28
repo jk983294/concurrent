@@ -62,7 +62,6 @@ int main(int argc, char** argv) {
             }
 
             admin->IssueCmd(line);
-            cout << "_" << line << "_" << endl;
 
             linenoise::AddHistory(line.c_str());
         }
