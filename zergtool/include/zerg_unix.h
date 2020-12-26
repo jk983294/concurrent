@@ -21,6 +21,7 @@ inline void Escape(void *p) { asm volatile("" : : "g"(p) : "memory"); }
 #define unlikely(x) __builtin_expect(!!(x), 0)
 
 inline bool CheckProcessAlive(pid_t id) {
+    if (id <= 0) return false;
     while (waitpid(-1, nullptr, WNOHANG) > 0) {
     }  // Wait for defunct, zombie sub-process get collected
     return 0 == kill(id, 0);
