@@ -64,8 +64,26 @@ int main(int argc, char** argv) {
             admin->IssueCmd(line);
 
             linenoise::AddHistory(line.c_str());
+            std::string ret;
+            do {
+                sleep(1);
+                ret = admin->ReadReturn();
+            } while (ret.empty());
+            if (ret == "DIE") {
+                printf("server die\n");
+                fflush(stdout);
+                break;
+            }
+            printf("Receive return %s\n", ret.c_str());
+            fflush(stdout);
         }
     } else {
         admin->IssueCmd(cmd);
+        std::string ret;
+        do {
+            sleep(1);
+            ret = admin->ReadReturn();
+        } while (ret.empty() && ret != "DIE");
+        printf("Receive return %s\n", ret.c_str());
     }
 }

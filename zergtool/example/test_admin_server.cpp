@@ -38,7 +38,9 @@ int main(int argc, char** argv) {
         string cmd = admin->ReadCmd();
         if (!cmd.empty()) {
             cout << "recv " << cmd << endl;
+            admin->WriteReturn(cmd);
         }
+
         sleep(1);
     }
 }
