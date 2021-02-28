@@ -44,6 +44,7 @@ inline bool start_with(const std::string& s, const std::string& p);
 inline bool end_with(const std::string& s, const std::string& p);
 inline std::string GenerateRandomString(size_t length, uint32_t seed = 0);
 inline std::vector<std::string> expand_names(const std::string& str);
+inline std::string to_string_high_precision(double value);
 
 inline int code_convert(const char* from_charset, const char* to_charset, char* inBuf, size_t inLen, char* outBuf,
                         size_t outLen) {
@@ -305,6 +306,13 @@ inline std::vector<std::string> expand_names(const std::string& str) {
         }
     }
     return ret;
+}
+
+inline std::string to_string_high_precision(double value) {
+    char buffer[64];
+    memset(buffer, 0, sizeof(buffer));
+    snprintf(buffer, sizeof(buffer), "%g", value);
+    return std::string(buffer);
 }
 }  // namespace ztool
 
