@@ -57,8 +57,8 @@ public:
 
     void log(ShmLogPriority priority, const char* sourceFile, int line, const char* formatStr, ...);
 
-    void log(ShmLogPriority priority, const char* sourceFile, int line, std::string formatStr, ...) {
-        log(priority, sourceFile, line, formatStr.c_str());
+    void log(ShmLogPriority priority, const char* sourceFile, int line, const std::string& msg) {
+        log(priority, sourceFile, line, msg.c_str());
     }
 
     static std::string getPriorityStr(ShmLogPriority priority) {

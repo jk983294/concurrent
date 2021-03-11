@@ -1,3 +1,4 @@
+#include "ShmLog.h"
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -5,7 +6,6 @@
 #include <cstdarg>
 #include <cstring>
 #include <map>
-#include "ShmLog.h"
 #include "media/ShmUtils.h"
 
 using namespace std;
@@ -173,6 +173,25 @@ void ShmLog::dumpLog() {
 }
 
 void ShmLog::log(ShmLogPriority priority, const char* sourceFile, int line, const char* formatStr, ...) {
+    if (!shmInited) {
+        ShmContent shmContent;
+        clock_gettime(CLOCK_REALTIME, &shmContent.ts);
+        shmContent.priority = priority;
+        char* buf = shmContent.msg;
+
+        va_list argp;
+        va_start(argp, formatStr);
+        int n = vsnprintf(buf, MaxLogLength, formatStr, argp);
+        va_end(argp);
+        if (-1 == n || !printSource)
+            buf[MaxLogLength - 1] = '\0';
+        else {
+            buf += n;
+            sprintf(buf, " (%s:%d)", sourceFile, line);
+        }
+        cout << genLogContent(shmContent) << endl;
+        return;
+    }
     int index = -1;
     while ((index = __sync_add_and_fetch(pIndex, 1)) >= maxCount) {
         if (__sync_bool_compare_and_swap(pIndex, maxCount, -1) == true) {

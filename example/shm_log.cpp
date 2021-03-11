@@ -17,8 +17,8 @@ void worker(int id) {
 }
 
 int main() {
-    frenzy::ShmLog::instance().initShm();
-    frenzy::ShmLog::instance().open("/tmp/test.log", frenzy::SLP_INFO, false);
+    // frenzy::ShmLog::instance().initShm();
+    // frenzy::ShmLog::instance().open("/tmp/test.log", frenzy::SLP_INFO, false);
     // frenzy::ShmLog::instance().open();
 
     const int NUM_WORKER = 5;
