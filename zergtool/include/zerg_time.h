@@ -287,14 +287,14 @@ inline uint32_t nano2date(uint64_t nano) {
         nano = nanoSinceEpochU();
     }
     time_t epoch = static_cast<long>(nano / oneSecondNano);
-    struct tm tm;
+    struct tm tm = {0};
     gmtime_r(&epoch, &tm);
     return static_cast<uint32_t>((tm.tm_year + 1900) * 10000 + (tm.tm_mon + 1) * 100 + tm.tm_mday);
 }
 
 inline std::string time_t2string(const time_t ct) {
     if (!ct) return "N/A";
-    struct tm tm;
+    struct tm tm = {0};
     localtime_r(&ct, &tm);
     char buffer[21];
     std::snprintf(buffer, sizeof buffer, "%4u-%02u-%02u %02u:%02u:%02u", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
@@ -303,7 +303,7 @@ inline std::string time_t2string(const time_t ct) {
 }
 
 inline int64_t time_t2hms(const time_t ct) {
-    struct tm tm;
+    struct tm tm = {0};
     localtime_r(&ct, &tm);
     return (tm.tm_hour * 10000 + tm.tm_min * 100 + tm.tm_sec);
 }
@@ -319,7 +319,7 @@ inline std::string ntime2string(uint64_t nano) {
     return time_t2string(epoch);
 }
 inline time_t time_t_from_ymdhms(int ymd, int hms) {
-    struct tm tm;
+    struct tm tm = {0};
     tm.tm_mday = ymd % 100;
     ymd /= 100;
     tm.tm_mon = ymd % 100 - 1;
@@ -337,7 +337,7 @@ inline uint64_t ntime_from_double(double ymdhms) {
 }
 
 inline std::string timeval2string(const struct timeval& tv) {
-    struct tm tm;
+    struct tm tm = {0};
     localtime_r(&tv.tv_sec, &tm);
     char buffer[24];
     std::snprintf(buffer, sizeof buffer, "%4u-%02u-%02u %02u:%02u:%02u.%03u", tm.tm_year + 1900, tm.tm_mon + 1,
@@ -346,7 +346,7 @@ inline std::string timeval2string(const struct timeval& tv) {
 }
 
 inline std::string timespec2string(const timespec& ts) {
-    struct tm tm;
+    struct tm tm = {0};
     localtime_r(&ts.tv_sec, &tm);
     char buffer[24];
     std::snprintf(buffer, sizeof buffer, "%4u-%02u-%02u %02u:%02u:%02u.%03u", tm.tm_year + 1900, tm.tm_mon + 1,
@@ -399,21 +399,21 @@ inline std::string now_local_string() {
 
 inline int64_t now_cob() {
     time_t tNow = time(nullptr);
-    struct tm tm;
+    struct tm tm = {0};
     localtime_r(&tNow, &tm);
     return (tm.tm_year + 1900) * 10000 + (tm.tm_mon + 1) * 100 + tm.tm_mday;
 }
 
 inline int64_t now_HMS() {
     time_t tNow = (time_t)time(nullptr);
-    struct tm tm;
+    struct tm tm = {0};
     localtime_r(&tNow, &tm);
     return tm.tm_hour * 10000 + tm.tm_min * 100 + tm.tm_sec;
 }
 
 inline std::string now_string() {
     time_t tNow = time(nullptr);
-    struct tm tm;
+    struct tm tm = {0};
     localtime_r(&tNow, &tm);
     char buffer[16];
     std::snprintf(buffer, sizeof buffer, "%4u%02u%02u.%02u%02u%02u", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,

@@ -80,11 +80,24 @@ bool is_identical(const std::vector<T>& a, const std::vector<T>& b) {
     return true;
 }
 
+/**
+ * check a contains sub_a
+ */
 template <typename T>
 bool is_subset(std::vector<T> a, std::vector<T> sub_a) {
     std::sort(a.begin(), a.end());
     std::sort(sub_a.begin(), sub_a.end());
     return std::includes(a.begin(), a.end(), sub_a.begin(), sub_a.end());
+}
+
+template <typename T>
+bool has_common_element(std::vector<T> a, std::vector<T> b) {
+    std::sort(a.begin(), a.end());
+    std::sort(b.begin(), b.end());
+    std::vector<T> v_intersection;
+
+    std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(v_intersection));
+    return !v_intersection.empty();
 }
 
 }  // namespace ztool
