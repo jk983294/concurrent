@@ -1,9 +1,12 @@
 #ifndef CONCURRENT_ZERG_TEMPLATE_H
 #define CONCURRENT_ZERG_TEMPLATE_H
 
+#include <algorithm>
 #include <cstdint>
+#include <map>
 #include <string>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
 
 using std::string;
@@ -98,6 +101,34 @@ bool has_common_element(std::vector<T> a, std::vector<T> b) {
 
     std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(v_intersection));
     return !v_intersection.empty();
+}
+
+template <typename TKey, typename TValue>
+std::vector<TKey> get_all_keys(const std::map<TKey, TValue>& m) {
+    std::vector<TKey> ret;
+    for (auto const& imap : m) ret.push_back(imap.first);
+    return ret;
+}
+
+template <typename TKey, typename TValue>
+std::vector<TKey> get_all_keys(const std::unordered_map<TKey, TValue>& m) {
+    std::vector<TKey> ret;
+    for (auto const& imap : m) ret.push_back(imap.first);
+    return ret;
+}
+
+template <typename TKey, typename TValue>
+std::vector<TValue> get_all_values(const std::map<TKey, TValue>& m) {
+    std::vector<TValue> ret;
+    for (auto const& imap : m) ret.push_back(imap.second);
+    return ret;
+}
+
+template <typename TKey, typename TValue>
+std::vector<TValue> get_all_values(const std::unordered_map<TKey, TValue>& m) {
+    std::vector<TValue> ret;
+    for (auto const& imap : m) ret.push_back(imap.second);
+    return ret;
 }
 
 }  // namespace ztool
