@@ -34,6 +34,15 @@ inline std::string GetFuturesProduct(const std::string& inst_id) {
     std::tie(pdt, std::ignore) = SplitFuturesMaturity(inst_id);
     return pdt;
 }
+
+inline int32_t GetToday(std::vector<int32_t>& dl, int32_t offset = 0) {
+    int day = static_cast<int>(ztool::now_cob());
+    auto itr = std::find(dl.begin(), dl.end(), day);
+    if (itr + offset < dl.end())
+        return *(itr + offset);
+    else
+        return -1;
+}
 }  // namespace ztool
 
 #endif

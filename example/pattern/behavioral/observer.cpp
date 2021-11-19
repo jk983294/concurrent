@@ -19,7 +19,7 @@ protected:
 
 class Observable {
 public:
-    void register_(std::weak_ptr<Observer> x) { observers_.push_back(x); }
+    void register_(const std::weak_ptr<Observer>& x) { observers_.push_back(x); }
 
     void notifyObservers() {
         std::lock_guard<std::mutex> lock(mutex_);

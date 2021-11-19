@@ -131,6 +131,39 @@ std::vector<TValue> get_all_values(const std::unordered_map<TKey, TValue>& m) {
     return ret;
 }
 
+template <typename T>
+inline void safe_delete(T*& pointer) {
+    if (pointer != nullptr) delete pointer;
+    pointer = nullptr;
+}
+
+template <typename T>
+inline void safe_delete_objs(T*& pointer) {
+    if (pointer != nullptr) delete[] pointer;
+    pointer = nullptr;
+}
+
+template <typename T>
+inline void safe_delete(std::vector<T*>& pointer) {
+    for (size_t i = 0; i < pointer.size(); i++)
+        if (pointer[i] != nullptr) delete pointer[i];
+    pointer.clear();
+}
+
+template <typename T>
+inline void safe_delete(std::map<std::string, T*>& pointer) {
+    for (auto iter = pointer.begin(); iter != pointer.end(); ++iter)
+        if (iter->second != nullptr) delete iter->second;
+    pointer.clear();
+}
+
+template <typename T>
+inline void safe_delete_objs(std::vector<T*>& pointer) {
+    for (size_t i = 0; i < pointer.size(); i++)
+        if (pointer[i] != nullptr) delete[] pointer;
+    pointer.clear();
+}
+
 }  // namespace ztool
 
 #endif

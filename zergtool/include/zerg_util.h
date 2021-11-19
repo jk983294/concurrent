@@ -398,6 +398,40 @@ inline std::string GetProgramPath() {
     if (r != -1) name[r] = '\0';
     return std::string(name);
 }
+
+inline string ReplaceXmlPlaceholder(const string& xml_file, const string& section = "constdefine") {
+    auto temp_cfg = XmlNode(xml_file);
+    std::map<std::string, std::string> sub_string_holders;
+    if (temp_cfg.hasChild(section)) {
+        XmlNode const_cfg = temp_cfg.getChild(section);
+        auto config_map = const_cfg.getAllAttrMap();
+        for (auto& iter : config_map) {
+            sub_string_holders[iter.first] = iter.second;
+        }
+    }
+
+    std::ifstream in(xml_file);
+    std::string whole_file((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    ztool::ReplaceStringHolder(whole_file, sub_string_holders);
+    return whole_file;
+}
+
+inline void WalkToInclude(ztool::XmlNode& root, ztool::XmlNode& cfg) {
+    if (cfg.hasChild("")) {
+        for (auto& child : cfg.getChildren()) {
+            if (child.getNodeName() == "xml_file") {
+                std::string xml_file = child.getAttrOrThrow("file");
+                string whole_file = ReplaceXmlPlaceholder(xml_file);
+                std::istringstream ss(whole_file);
+                ztool::XmlNode subconfig(ss);
+                for (auto& iter : subconfig.getChildren()) {
+                    cfg.appendChild(iter, root);
+                }
+            } else
+                WalkToInclude(root, child);
+        }
+    }
+}
 }  // namespace ztool
 
 #endif
