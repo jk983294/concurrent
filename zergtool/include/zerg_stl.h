@@ -58,4 +58,16 @@ inline std::ostream& operator<<(std::ostream& os, const std::vector<std::vector<
     return os;
 }
 
+template <typename T>
+void reset_vector(std::vector<T> &vec, T init_val = T()) {
+    std::fill(vec.begin(), vec.end(), init_val);
+}
+
+template <typename T>
+void reset_vector(std::vector<std::vector<T>> &vec, T init_val = T()) {
+    for (auto &sub_vec : vec) {
+        std::fill(sub_vec.begin(), sub_vec.end(), init_val);
+    }
+}
+
 #endif

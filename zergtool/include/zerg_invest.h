@@ -2,6 +2,7 @@
 #define CONCURRENT_ZERG_INVEST_H
 
 #include <zerg_string.h>
+#include <zerg_time.h>
 
 namespace ztool {
 /**
