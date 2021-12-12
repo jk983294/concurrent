@@ -164,6 +164,18 @@ inline void safe_delete_objs(std::vector<T*>& pointer) {
     pointer.clear();
 }
 
+template <typename T>
+std::vector<T> remove_dupe_keep_old_order(const std::vector<T>& vec) {
+    std::vector<T> ret;
+    std::set<T> s;
+    for (auto& v : vec) {
+        if (s.count(v) > 0) continue;
+        ret.push_back(v);
+        s.insert(v);
+    }
+    return ret;
+}
+
 }  // namespace ztool
 
 #endif
