@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <map>
+#include <unordered_set>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -167,7 +168,7 @@ inline void safe_delete_objs(std::vector<T*>& pointer) {
 template <typename T>
 std::vector<T> remove_dupe_keep_old_order(const std::vector<T>& vec) {
     std::vector<T> ret;
-    std::set<T> s;
+    std::unordered_set<T> s;
     for (auto& v : vec) {
         if (s.count(v) > 0) continue;
         ret.push_back(v);
