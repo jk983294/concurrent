@@ -49,6 +49,18 @@ TEST_CASE("steal", "[list]") {
     REQUIRE(*(--tlist.rbegin()) == 1);
 }
 
+TEST_CASE("steal overflow", "[list]") {
+    TapList<int, 5> tlist;
+    typedef TapList<int, 5> TL;
+    TapList<int, 5>::DataCell* p = (TL::DataCell*)malloc(5 * sizeof(TL::DataCell));
+    tlist.steal(p, 5);
+    for (int i = 0; i < 6; ++i) {
+        tlist.push_back(i);
+    }
+    REQUIRE(*(tlist.begin()) == 0);
+    REQUIRE(*(tlist.rbegin()) == 5);
+}
+
 TEST_CASE("ERASEFROMBEGIN", "[list]") {
     TapList<int, 5> tlist;
     tlist.push_back(1);
@@ -61,18 +73,6 @@ TEST_CASE("ERASEFROMBEGIN", "[list]") {
     tlist.erase_from_begin(iter);
 
     REQUIRE((*tlist.begin()) == 2);
-}
-
-TEST_CASE("ERASEFROMBEGINSIZE", "[list]") {
-    TapList<int, 5> tlist;
-    tlist.push_back(1);
-    tlist.push_back(2);
-    tlist.push_back(3);
-    tlist.push_back(4);
-    auto iter = tlist.rbegin();
-    --iter;
-    --iter;
-    tlist.erase_from_begin(iter);
     REQUIRE(tlist.size() == 3);
 }
 
@@ -97,26 +97,10 @@ TEST_CASE("ERASEFROMEND", "[list]") {
     auto iter = tlist.rbegin();
     --iter;
     --iter;
-    // free(p);
 
     tlist.erase_from_end(iter);
 
     REQUIRE((*tlist.rbegin()) == 2);
-}
-
-TEST_CASE("ERASEFROMENDSIZE", "[list]") {
-    TapList<int, 5> tlist;
-
-    tlist.push_back(1);
-    tlist.push_back(2);
-    tlist.push_back(3);
-    tlist.push_back(4);
-    auto iter = tlist.rbegin();
-    --iter;
-    --iter;
-
-    tlist.erase_from_end(iter);
-
     REQUIRE(tlist.size() == 2);
 }
 

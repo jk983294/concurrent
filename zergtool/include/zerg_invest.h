@@ -4,6 +4,29 @@
 #include <zerg_string.h>
 #include <zerg_time.h>
 
+struct CtpInstrumentDaily {
+    std::string ContractCode;
+    int TradingDay{-1};
+    int LastTradingDate{-1};
+    int Volume{-1};
+    int Multiplier{-1};
+    double PrevSettlePrice{NAN};
+    double OpenPrice{NAN};
+    double HighPrice{NAN};
+    double LowPrice{NAN};
+    double LittlestChangeUnit{NAN};
+    double PriceLimit{NAN};
+    double MarginRatio{NAN};
+    // from tmr profile
+    double ClosePrice{NAN};    // get from md, adjust using tmr profile
+    double OpenInterest{NAN};  // get from md, adjust using tmr profile
+    double SettlePrice{NAN};   // only from tmr profile
+};
+
+std::ostream& operator<<(std::ostream& s, const CtpInstrumentDaily& data);
+std::vector<CtpInstrumentDaily> ctp_daily_from_csv(const std::string& path);
+bool ctp_daily_to_csv(const std::string& filename, std::vector<CtpInstrumentDaily>& daily_datum);
+
 namespace ztool {
 /**
  * cu2006 -> (cu, 2006)

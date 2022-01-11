@@ -13,23 +13,19 @@ class TapList {
 public:
     // used as data block
     struct DataCell {
-        T data;
-        DataCell* prev;
-        DataCell* next;
-        DataCell() : data() {
-            prev = nullptr;
-            next = nullptr;
-        }
+        T data{};
+        DataCell* prev{nullptr};
+        DataCell* next{nullptr};
     };
 
 protected:
     // _head is used as iterator
     struct _head : std::iterator<std::bidirectional_iterator_tag, T> {
-        DataCell* data;
-        DataCell* prev;
-        DataCell* next;
-        TapList* parent;
-        _head(TapList* tl) : data(nullptr), prev(nullptr), next(nullptr), parent(tl) {}
+        DataCell* data{nullptr};
+        DataCell* prev{nullptr};
+        DataCell* next{nullptr};
+        TapList* parent{nullptr};
+        _head(TapList* tl) : parent(tl) {}
         _head(TapList* tl, DataCell* pData, DataCell* pPrev, DataCell* pNext)
             : data(pData), prev(pPrev), next(pNext), parent(tl) {}
         _head(TapList* tl, DataCell& dt) : data(&dt), prev(dt.prev), next(dt.next), parent(tl) {}
@@ -230,12 +226,12 @@ public:
         if (tail != head) ++tail;
     }
 
-    void erase_from_begin(iterator pos) {
+    void erase_from_begin(iterator pos) {  // remove [begin, pos)
         for (; tail != pos; ++tail) --m_num;
         if (!m_num) head = tail;
     }
 
-    void erase_from_end(iterator pos) {
+    void erase_from_end(iterator pos) {  // remove (pos, rbegin]
         for (; head != pos; --head) --m_num;
         if (!m_num) head = tail;
     }

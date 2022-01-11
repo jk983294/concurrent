@@ -272,6 +272,7 @@ inline std::vector<std::string> expand_names(const std::string& str) {
     auto name_patterns = ztool::split(str, ',');
     int tmp_num = 0;
     for (auto& pattern : name_patterns) {
+        if (pattern.empty()) continue;
         auto p1 = pattern.find('[');
         if (p1 == std::string::npos) {
             ret.push_back(pattern);
