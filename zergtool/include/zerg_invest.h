@@ -4,6 +4,46 @@
 #include <zerg_string.h>
 #include <zerg_time.h>
 
+inline constexpr int ctp_total_minute(int h, int m) {
+    int minute = h * 60 + m;
+    if (h < 18) minute += 24 * 60;
+    return minute;
+}
+
+constexpr int ctp_night_start_minute = ctp_total_minute(21, 0);
+constexpr int ctp_night_end_minute = ctp_total_minute(2, 30);
+constexpr int ctp_day_start_minute = ctp_total_minute(9, 0);
+constexpr int ctp_day_end_minute = ctp_total_minute(15, 0);
+
+inline bool IsInCtpTradingHour(int total_minute, bool is_night_session) {
+    if (is_night_session)
+        return (total_minute >= ctp_night_start_minute && total_minute <= ctp_night_end_minute);
+    else
+        return (total_minute >= ctp_day_start_minute && total_minute <= ctp_day_end_minute);
+}
+
+inline bool IsInCtpTradingHourAll(int total_minute) {
+    return (total_minute >= ctp_night_start_minute && total_minute <= ctp_night_end_minute) ||
+           (total_minute >= ctp_day_start_minute && total_minute <= ctp_day_end_minute);
+}
+
+/**
+ * 21:00 - 24:00
+ */
+inline bool is_in_early_night_session(int time) { return time > ztool::day_night_split; }
+/**
+ * 00:00 - 3:00
+ */
+inline bool is_in_late_night_session(int time) { return time < 30000000; }
+/**
+ * 21:00 - 3:00
+ */
+inline bool is_in_night_session(int time) { return (time < 30000000 || time > ztool::day_night_split); }
+/**
+ * 9:00 - 15:15
+ */
+inline bool is_in_day_session(int time) { return (time > ztool::day_start_split && time < ztool::day_night_split); }
+
 struct CtpInstrumentDaily {
     std::string ContractCode;
     int TradingDay{-1};
