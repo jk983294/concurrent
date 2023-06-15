@@ -235,3 +235,8 @@ TEST_CASE("Human Readable time", "[time]") {
     auto ret5 = ztool::HumanReadableTime(e);
     REQUIRE(ret5 == clock5);
 }
+
+TEST_CASE("GetNextDate", "[GetNextDate]") {
+    REQUIRE(GetNextDate(20220929) == 20220930);
+    REQUIRE(GetNextDate(20220930) == 20221001);
+}

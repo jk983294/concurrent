@@ -527,7 +527,20 @@ inline uint64_t rdtscp() {
     asm volatile("rdtscp\n" : "=a"(rax), "=d"(rdx), "=c"(aux));
     return (rdx << 32) + rax;
 }
-
+inline int GetNextDate(int cob) {
+    struct tm tm = {0};
+    tm.tm_mday = cob % 100;
+    cob /= 100;
+    tm.tm_mon = cob % 100 - 1;
+    tm.tm_year = cob / 100 - 1900;
+    tm.tm_sec = 0;
+    tm.tm_min = 0;
+    tm.tm_hour = 12;
+    time_t t = mktime(&tm) + 24 * 60 * 60;
+    struct tm tm1 = {0};
+    localtime_r(&t, &tm1);
+    return (tm1.tm_year + 1900) * 10000 + (tm1.tm_mon + 1) * 100 + tm1.tm_mday;
+}
 }  // namespace ztool
 
 #endif

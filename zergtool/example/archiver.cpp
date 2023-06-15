@@ -35,7 +35,14 @@ struct MyClass1 {
 };
 
 struct MyBase {
-    int var1;
+    MyBase() = default;
+    virtual ~MyBase() = default;
+    int var1{0};
+    int var3{0};
+
+    virtual void sayType() {
+        printf("MyBase::sayType\n");
+    }
 
     inline virtual void checkpoint_save(ArchiverWriter &writer) const { writer *var1; }
     inline virtual void checkpoint_load(ArchiverReader &reader) { reader *var1; }
@@ -44,7 +51,12 @@ struct MyBase {
 };
 
 struct MyDerive : public MyBase {
-    int var2;
+    int var2{0};
+    int var4{0};
+
+    virtual void sayType() {
+        printf("MyDerive::sayType\n");
+    }
 
     inline virtual void checkpoint_save(ArchiverWriter &writer) const {
         MyBase::checkpoint_save(writer);
@@ -99,12 +111,43 @@ void derive_demo() {
     cout << y.var1 << " " << y.var2 << endl;
 }
 
+void polymorphism_demo() {
+    ArchiverSizer sizer;
+    MyBase* a = new MyDerive;
+    a->var1 = 1;
+    a->var3 = 3;
+    ((MyDerive*)a)->var2 = 2;
+    ((MyDerive*)a)->var4 = 4;
+
+    ArchiverWriter writer;
+    sizer *(*a);  // read size of x
+    writer.alloc_mem(sizer.getTotalSize());
+    writer *(*a);  // save x into writer
+
+    MyBase* b = new MyDerive;
+    MyDerive* b_cast = (MyDerive*)(b);
+    b->var3 = 42;
+    ArchiverReader reader;
+    reader.read_from_memory(writer.getDataPointer(), writer.getTotalSize());
+    reader *(*b);
+    printf("from %d,%d,%d,%d\n", b->var1, b->var3, b_cast->var2, b_cast->var4);
+    b->sayType();
+}
+
+struct TestData {
+    int data{-1};
+};
+
+CHECKPOINT_SUPPORT_STRUCT_DECLARE(TestData)
+CHECKPOINT_SUPPORT_STRUCT(TestData)
+
 struct MyStdObj {
     map<string, string> a;
     vector<int> b;
     deque<double> c;
     list<float> d;
-    CHECKPOINT_SUPPORT(a *b *c *d)
+    vector<vector<TestData>> e;
+    CHECKPOINT_SUPPORT(a *b *c *d *e)
 };
 
 void std_demo() {
@@ -114,6 +157,8 @@ void std_demo() {
     x.b.push_back(2);
     x.c.push_back(3.0);
     x.d.push_back(4.0f);
+    x.e.resize(1);
+    x.e.back().push_back({42});
 
     ArchiverWriter writer;
     sizer *x;  // read size of x
@@ -124,12 +169,13 @@ void std_demo() {
     ArchiverReader reader;
     reader.read_from_memory(writer.getDataPointer(), writer.getTotalSize());
     reader *y;  // write data into y
-    cout << y.a["1"] << " " << y.b.front() << " " << y.c.front() << " " << y.d.front() << endl;
+    cout << y.a["1"] << " " << y.b.front() << " " << y.c.front() << " " << y.d.front() << " " << y.e.front().front().data << endl;
 }
 
 int main() {
     basic_demo();
     derive_demo();
+    polymorphism_demo();
     std_demo();
     return 0;
 }
