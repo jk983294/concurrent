@@ -130,7 +130,7 @@ inline int ArchiverReader::read_from_file(const std::string &filename) {
     ::rewind(fp);
     if (s > 0) {
         alloc_mem((size_t)s);
-        fread(m_buffer, (size_t)s, 1, fp);
+        std::ignore = fread(m_buffer, (size_t)s, 1, fp);
     }
     fclose(fp);
     return (int)s;
