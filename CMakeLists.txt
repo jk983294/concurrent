@@ -4,6 +4,11 @@ project(concurrent)
 
 set(CMAKE_INSTALL_PREFIX "/opt/version/latest/")
 
+find_package(OpenMP REQUIRED)
+find_library(FST_LIB libfst.a HINTS /opt/version/latest/cppfst/lib REQUIRED)
+find_library(LZ4_LIB libliblz4.a HINTS /opt/version/latest/cppfst/lib REQUIRED)
+find_library(ZSTD_LIB liblibzstd.a HINTS /opt/version/latest/cppfst/lib REQUIRED)
+
 # boost lib
 find_package( Boost 1.58.0 COMPONENTS system thread program_options filesystem )
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
@@ -25,6 +30,7 @@ include_directories(exp)
 include_directories(SYSTEM "/home/$USER/include")
 include_directories(SYSTEM "/opt/3rd/common/include/")
 include_directories(SYSTEM "zergtool/include")
+include_directories(SYSTEM /opt/version/latest/cppfst/include)
 
 link_directories(/opt/3rd/common/lib)
 

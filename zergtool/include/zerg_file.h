@@ -20,6 +20,12 @@
 #include "zerg_exception.h"
 
 namespace ztool {
+struct OutputColumnOption {
+    int type{0};  // 1: double, 2:float, 3:int, 4:string
+    void* data{nullptr};
+    std::string name;
+};
+
 /**
  * c++ version of mkdir -p command
  * example: mkdirp("/tmp/dd/aaa", 0755);
