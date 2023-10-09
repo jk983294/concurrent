@@ -21,6 +21,20 @@ int GetCobFromDir(std::string path) {
         return std::stoi(cob_str_);
 }
 
+std::string CnFutUkeyMetaMap::get_pdt(int ukey) {
+    if (ukey > 20000000) {
+        ukey = ukey - (ukey % 10000);
+    } else if (ukey < 10000) {
+        ukey = ukey * 10000;
+    }
+    auto itr = ukey2meta.find(ukey);
+    if (itr == ukey2meta.end()) return "NA";
+    else {
+        CnFutUkeyMeta* meta = itr->second;
+        return meta->pdt + "." + meta->exch;
+    }
+}
+
 int CnFutUkeyMetaMap::get_ukey(std::string ins) {
     auto itr = ins.find_first_of('.');
     if (itr != string::npos) ins = ins.substr(0, itr); // chop off .CFFEX suffix

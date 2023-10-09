@@ -18,6 +18,7 @@ struct CnFutUkeyMetaMap {
     CnFutUkeyMeta* find(const std::string& pdt) { return pdt2meta[pdt]; }
     int get_ukey(const std::string& pdt, int maturity);
     int get_ukey(std::string ins);
+    std::string get_pdt(int ukey);
     std::unordered_map<std::string, CnFutUkeyMeta*> pdt2meta;
     std::unordered_map<int, CnFutUkeyMeta*> ukey2meta;
     std::vector<CnFutUkeyMeta> metas;
