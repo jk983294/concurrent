@@ -21,7 +21,7 @@
 
 namespace ztool {
 struct OutputColumnOption {
-    int type{0};  // 1: double, 2:float, 3:int, 4:string
+    int type{0};  // 1: double, 2:float, 3:int, 4:string, 5:bool
     void* data{nullptr};
     std::string name;
 };
