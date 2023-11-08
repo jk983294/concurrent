@@ -8,5 +8,5 @@ foreach( sourcefile ${EXAMPLE_TOOL_SOURCES} )
     message ("source files: " ${sourcefile} " executable: " ${executablename})
     add_executable( ${executablename} ${sourcefile} )
     target_link_libraries( ${executablename} common_3rd_lib frenzy ${OpenMP_CXX_FLAGS}
-            ${FST_LIB} ${LZ4_LIB} ${ZSTD_LIB} arrow pthread rt dl)
+            ${FST_LIB} ${LZ4_LIB} ${ZSTD_LIB} arrow arrow_dataset pthread rt dl)
 endforeach( sourcefile ${EXAMPLE_TOOL_SOURCES} )
