@@ -2,16 +2,30 @@
 #include <zerg_fst.h>
 #include <zerg_template.h>
 #include <regex>
+#include <omp.h>
 
 using namespace ztool;
-
-
 
 struct DailyY {
     void work() {
         read_y();
         auto xs = ztool::path_wildcard(ztool::path_join(m_x_dir, "*.fst"));
+        std::vector<std::pair<std::string, std::string>> todos;
         for (auto& item : xs) {
+            int cob = std::stoi(item.first);
+            if ((m_start_date > 0 && cob < m_start_date) || (m_end_date > 0 && cob > m_end_date)) {
+                continue;
+            } else {
+                todos.emplace_back(item.first, item.second);
+            }
+        }
+
+        reserve(todos.size() * m_ys.size() * 1000);
+        std::sort(todos.begin(), todos.end(), [](auto& l, auto& r) { return l.first < r.first; });
+        for (size_t i = 0; i < todos.size(); ++i) {
+            auto& item = todos[i];
+            printf("handle %s %zu/%zu\n", item.second.c_str(), i, todos.size());
+            std::cout << std::flush; // flush out
             work_single(item.first, item.second);
         }
         save_result();
@@ -19,6 +33,7 @@ struct DailyY {
 
     void read_y();
     void save_result();
+    void reserve(size_t len);
 
     FstReader y_reader;
     std::string m_y_path, m_x_dir;
@@ -34,6 +49,7 @@ struct DailyY {
     std::unordered_map<int, std::vector<size_t>> m_y_date2keys;
     size_t m_y_len{0};
     int m_start_date{-1}, m_end_date{-1};
+    int threads{0};
     std::vector<int> m_result_date, m_result_tick, m_y_idx, m_x_idx;
     std::vector<double> m_result_pcor, m_result_pcor_pos, m_result_rcor, m_result_rcor_pos;
 
@@ -51,13 +67,14 @@ static void help() {
     std::cout << "  -q arg (=)                          pattern of x" << std::endl;
     std::cout << "  -s arg (=-1)                          start date" << std::endl;
     std::cout << "  -e arg (=-1)                          end date" << std::endl;
+    std::cout << "  -t arg (=0)                          thread num" << std::endl;
 }
 
 int main(int argc, char** argv) {
     DailyY dy;
     string config;
     int opt;
-    while ((opt = getopt(argc, argv, "hx:y:p:q:s:e:")) != -1) {
+    while ((opt = getopt(argc, argv, "hx:y:p:q:s:e:t:")) != -1) {
         switch (opt) {
             case 'x':
                 dy.m_x_dir = std::string(optarg);
@@ -76,6 +93,9 @@ int main(int argc, char** argv) {
                 break;
             case 'e':
                 dy.m_end_date = std::stoi(optarg);
+                break;
+            case 't':
+                dy.threads = std::stoi(optarg);
                 break;
             case 'h':
             default:
@@ -121,13 +141,6 @@ static double corr(const std::vector<double> &x, const std::vector<double> &y, i
 }
 
 void DailyY::work_single(const string& date_str, const string& path) {
-    int cob = std::stoi(date_str);
-    if ((m_start_date > 0 && cob < m_start_date) || (m_end_date > 0 && cob > m_end_date)) {
-        printf("ignore %s\n", path.c_str());
-        return;
-    } else {
-        printf("handle %s\n", path.c_str());
-    }
     FstReader x_reader;
     x_reader.read(path);
     std::regex x_regex(m_x_pattern);
@@ -175,9 +188,6 @@ void DailyY::work_single(const string& date_str, const string& path) {
         throw std::runtime_error("x column differ " + path);
     }
 
-    std::vector<int> result_date, result_tick, y_idx, x_idx;
-    std::vector<double> result_pcor, result_pcor_pos, result_rcor, result_rcor_pos;
-
     std::unordered_map<uint64_t, std::vector<size_t>> x_key2row_pos;
     for (uint64_t i = 0; i < x_reader.rows; ++i) {
         uint64_t key = get_key((*x_dates)[i], (*x_ticks)[i]);
@@ -190,8 +200,18 @@ void DailyY::work_single(const string& date_str, const string& path) {
         printf("WARN! date %d not in y table %s\n", date, path.c_str());
         return;
     }
-    auto& keys = itr->second;
-    for (auto key_ : keys) {
+    const std::vector<size_t>& keys = itr->second;
+    size_t key_len = keys.size();
+    size_t cor_len = m_ys.size() * pXs.size();
+    size_t total_len = key_len * cor_len;
+
+    std::vector<int> result_date(total_len, date), result_tick(total_len), y_idx(total_len), x_idx(total_len);
+    std::vector<double> result_pcor(total_len, NAN), result_pcor_pos(total_len, NAN);
+    std::vector<double> result_rcor(total_len, NAN), result_rcor_pos(total_len, NAN);
+
+#pragma omp parallel for num_threads(threads == 0 ? omp_get_max_threads():threads)
+    for (size_t k = 0; k < key_len; ++k) {
+        size_t key_ = keys[k];
         auto itr1 = m_y_tick_date_pos.find(key_); // must exist
         auto range = itr1->second;
         size_t y_start = range.first, y_end = range.second;
@@ -227,14 +247,13 @@ void DailyY::work_single(const string& date_str, const string& path) {
                 double rcor_pos = detail::rcor(xs, ys, 0, 1);
                 //printf("yi=%zu xi=%zu %d %zu pcor %f,%f,%f,%f\n", i, j, date, key_ % 1000000000, pcor, pcor_pos, rcor, rcor_pos);
 
-                result_date.push_back(date);
-                result_tick.push_back(key_ % 1000000000);
-                y_idx.push_back(i);
-                x_idx.push_back(j);
-                result_pcor.push_back(pcor);
-                result_pcor_pos.push_back(pcor_pos);
-                result_rcor.push_back(rcor);
-                result_rcor_pos.push_back(rcor_pos);
+                result_tick[k * cor_len + i * pXs.size() + j] = key_ % 1000000000;
+                y_idx[k * cor_len + i * pXs.size() + j] = i;
+                x_idx[k * cor_len + i * pXs.size() + j] = j;
+                result_pcor[k * cor_len + i * pXs.size() + j] = pcor;
+                result_pcor_pos[k * cor_len + i * pXs.size() + j] = pcor_pos;
+                result_rcor[k * cor_len + i * pXs.size() + j] = rcor;
+                result_rcor_pos[k * cor_len + i * pXs.size() + j] = rcor_pos;
             }
         }
     }
@@ -247,6 +266,17 @@ void DailyY::work_single(const string& date_str, const string& path) {
     m_result_pcor_pos.insert(m_result_pcor_pos.end(), result_pcor_pos.begin(), result_pcor_pos.end());
     m_result_rcor.insert(m_result_rcor.end(), result_rcor.begin(), result_rcor.end());
     m_result_rcor_pos.insert(m_result_rcor_pos.end(), result_rcor_pos.begin(), result_rcor_pos.end());
+}
+
+void DailyY::reserve(size_t len) {
+    m_result_date.reserve(len);
+    m_result_tick.reserve(len);
+    m_y_idx.reserve(len);
+    m_x_idx.reserve(len);
+    m_result_pcor.reserve(len);
+    m_result_pcor_pos.reserve(len);
+    m_result_rcor.reserve(len);
+    m_result_rcor_pos.reserve(len);
 }
 
 void DailyY::read_y() {
@@ -279,9 +309,10 @@ void DailyY::read_y() {
 
     m_y_tick_date_pos.reserve(100000);
     uint64_t last_key = 0;
+    int last_date = 0;
     for (uint64_t i = 0; i < y_reader.rows; ++i) {
         uint64_t key = get_key((*m_y_date)[i], (*m_y_tick)[i]);
-        if (key < last_key) {
+        if (key < last_key && last_date == (*m_y_date)[i]) {
             throw std::runtime_error("y key not sorted " + std::to_string(key) + " <> " + std::to_string(last_key));
         }
         auto itr = m_y_tick_date_pos.find(key);
@@ -292,6 +323,7 @@ void DailyY::read_y() {
             m_y_tick_date_pos[key].second = i;
         }
         last_key = key;
+        last_date = (*m_y_date)[i];
     }
     m_y_len = m_y_tick_date_pos.size();
     printf("total y entry = %zu\n", m_y_len);
