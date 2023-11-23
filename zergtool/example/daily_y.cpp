@@ -1,6 +1,7 @@
 #include <zerg_feather.h>
 #include <zerg_fst.h>
 #include <zerg_template.h>
+#include <zerg_time.h>
 #include <regex>
 #include <omp.h>
 
@@ -20,11 +21,12 @@ struct DailyY {
             }
         }
 
-        reserve(todos.size() * m_ys.size() * 1000);
+        m_date_len = todos.size();
+        //reserve(m_date_len * m_ys.size() * 1000);
         std::sort(todos.begin(), todos.end(), [](auto& l, auto& r) { return l.first < r.first; });
         for (size_t i = 0; i < todos.size(); ++i) {
             auto& item = todos[i];
-            printf("handle %s %zu/%zu\n", item.second.c_str(), i, todos.size());
+            printf("%s handle %s %zu/%zu\n", now_local_string().c_str(), item.second.c_str(), i, todos.size());
             std::cout << std::flush; // flush out
             work_single(item.first, item.second);
         }
@@ -48,6 +50,8 @@ struct DailyY {
     std::unordered_map<uint64_t, std::pair<size_t, size_t>> m_y_tick_date_pos;
     std::unordered_map<int, std::vector<size_t>> m_y_date2keys;
     size_t m_y_len{0};
+    size_t m_x_len{0};
+    size_t m_date_len{0};
     int m_start_date{-1}, m_end_date{-1};
     int threads{0};
     std::vector<int> m_result_date, m_result_tick, m_y_idx, m_x_idx;
@@ -186,6 +190,11 @@ void DailyY::work_single(const string& date_str, const string& path) {
         }
     } else if (not is_identical(m_xNames, xNames)) {
         throw std::runtime_error("x column differ " + path);
+    }
+
+    if (m_x_len == 0) {
+        m_x_len = m_xNames.size();
+        reserve(m_date_len * m_ys.size() * m_x_len);
     }
 
     std::unordered_map<uint64_t, std::vector<size_t>> x_key2row_pos;
