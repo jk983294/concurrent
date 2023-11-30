@@ -79,6 +79,8 @@ inline void split_hms(int hms, int& h, int& m, int& s);
  */
 int intraday_time_HMS(const char* str);
 int intraday_time_HMS(const string& str);
+int64_t usec_HMS(const char* str, int64_t ms = 0);
+int64_t usec_HMS(const string& str, int64_t ms = 0);
 
 /**
  * "23:59" to 2359
@@ -428,6 +430,15 @@ inline int intraday_time_HMS(const char* str) {
            (str[6] - '0') * 10 + (str[7] - '0');
 }
 inline int intraday_time_HMS(const string& str) { return intraday_time_HMS(str.c_str()); }
+
+inline int64_t usec_HMS(const char* str, int64_t ms) {
+    int64_t h = (str[0] - '0') * 10 + (str[1] - '0');
+    int64_t m = (str[3] - '0') * 10 + (str[4] - '0');
+    int64_t s = (str[6] - '0') * 10 + (str[7] - '0');
+    return (h * 3600L + m * 60L + s) * 1000000L + ms * 1000L;
+}
+inline int64_t usec_HMS(const string& str, int64_t ms) { return usec_HMS(str.c_str(), ms); }
+
 /**
  * "23:59" to 2359
  */

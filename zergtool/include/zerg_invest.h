@@ -3,6 +3,7 @@
 
 #include <zerg_string.h>
 #include <zerg_time.h>
+#include <archiver.h>
 
 inline constexpr int ctp_total_minute(int h, int m) {
     int minute = h * 60 + m;
@@ -26,6 +27,8 @@ inline bool IsInCtpTradingHourAll(int total_minute) {
     return (total_minute >= ctp_night_start_minute && total_minute <= ctp_night_end_minute) ||
            (total_minute >= ctp_day_start_minute && total_minute <= ctp_day_end_minute);
 }
+
+inline bool IsNanField(double v) { return !std::isfinite(v) || v == std::numeric_limits<double>::max(); }
 
 /**
  * 21:00 - 24:00
@@ -66,6 +69,52 @@ struct CtpInstrumentDaily {
 std::ostream& operator<<(std::ostream& s, const CtpInstrumentDaily& data);
 std::vector<CtpInstrumentDaily> ctp_daily_from_csv(const std::string& path);
 bool ctp_daily_to_csv(const std::string& filename, std::vector<CtpInstrumentDaily>& daily_datum);
+
+struct CtpInstrumentProfile {
+    std::string InstrumentID;
+    std::string ExchangeID;
+    std::string InstrumentName;
+    std::string ProductID;
+    std::string CreateDate;
+    std::string OpenDate;
+    std::string ExpireDate;
+    std::string StartDelivDate;
+    std::string EndDelivDate;
+    char ProductClass{'1'};
+    char InstLifePhase{'1'};
+    char PositionType{'1'};
+    char PositionDateType{'1'};
+    int IsTrading{0};
+    int DeliveryYear{-1};
+    int DeliveryMonth{-1};
+    int MaxMarketOrderVolume{-1};
+    int MinMarketOrderVolume{-1};
+    int MaxLimitOrderVolume{-1};
+    int MinLimitOrderVolume{-1};
+    int VolumeMultiple{-1};
+    double PriceTick{NAN};
+    double LongMarginRatio{NAN};
+    double ShortMarginRatio{NAN};
+    double PreSettlementPrice{NAN};
+    double PreClosePrice{NAN};
+    double PreOpenInterest{NAN};
+    double UpperLimitPrice{NAN};
+    double LowerLimitPrice{NAN};
+
+    CHECKPOINT_SUPPORT(InstrumentID* ExchangeID* InstrumentName* ProductID* CreateDate* OpenDate* ExpireDate*
+                           StartDelivDate* EndDelivDate* ProductClass* InstLifePhase* PositionType* PositionDateType*
+                           IsTrading* DeliveryYear* DeliveryMonth* MaxMarketOrderVolume* MinMarketOrderVolume*
+                           MaxLimitOrderVolume* MinLimitOrderVolume* VolumeMultiple* PriceTick* LongMarginRatio*
+                           ShortMarginRatio* PreSettlementPrice* PreClosePrice* PreOpenInterest* UpperLimitPrice*
+                           LowerLimitPrice)
+
+    void set_nan();
+};
+
+void set_from(CtpInstrumentDaily& daily, const CtpInstrumentProfile& profile);
+std::ostream& operator<<(std::ostream& s, const CtpInstrumentProfile& data);
+std::vector<CtpInstrumentProfile> ctp_profile_from_csv(const string& path);
+bool ctp_profile_to_csv(const string& filename, std::vector<CtpInstrumentProfile>& profiles);
 
 namespace ztool {
 /**

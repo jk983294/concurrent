@@ -177,6 +177,11 @@ std::vector<T> remove_dupe_keep_old_order(const std::vector<T>& vec) {
     return ret;
 }
 
+template <typename T>
+void vec_append(std::vector<T>& vec, const std::vector<T>& vec1) {
+    vec.insert(vec.end(), vec1.begin(), vec1.end());
+}
+
 }  // namespace ztool
 
 #endif

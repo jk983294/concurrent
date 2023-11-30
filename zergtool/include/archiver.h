@@ -295,6 +295,7 @@ CHECKPOINT_SUPPORT_STRUCT_DECLARE(long long)
 CHECKPOINT_SUPPORT_STRUCT_DECLARE(float)
 CHECKPOINT_SUPPORT_STRUCT_DECLARE(double)
 CHECKPOINT_SUPPORT_STRUCT_DECLARE(size_t)
+CHECKPOINT_SUPPORT_STRUCT_DECLARE(int64_t)
 // CHECKPOINT_SUPPORT_STRUCT_DECLARE(int)  // below int example
 inline ArchiverWriter &operator*(ArchiverWriter &writer, const int &arg);
 inline ArchiverReader &operator*(ArchiverReader &reader, int &arg);
@@ -628,6 +629,7 @@ CHECKPOINT_SUPPORT_STRUCT(long long)
 CHECKPOINT_SUPPORT_STRUCT(float)
 CHECKPOINT_SUPPORT_STRUCT(double)
 CHECKPOINT_SUPPORT_STRUCT(size_t)
+CHECKPOINT_SUPPORT_STRUCT(int64_t)
 // CHECKPOINT_SUPPORT_STRUCT(int) // below is expanded example
 
 inline ArchiverWriter &operator*(ArchiverWriter &writer, const int &arg) {
