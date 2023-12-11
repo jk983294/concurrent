@@ -116,11 +116,11 @@ public:
     } while (false)
 
 #define LOG_SET_PRIORITY(priority) frenzy::ShmLog::instance().setPriority(priority);
-#define LOG_DEBUG(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_DEBUG, __FILE__, __LINE__, args)
-#define LOG_INFO(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_INFO, __FILE__, __LINE__, args)
-#define LOG_WARN(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_WARNING, __FILE__, __LINE__, args)
-#define LOG_ERROR(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_ERROR, __FILE__, __LINE__, args)
-#define LOG_CRITICAL(args...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_CRITICAL, __FILE__, __LINE__, args)
+#define LOG_DEBUG(...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_INFO(...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_INFO, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_WARN(...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_WARNING, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_ERROR(...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_ERROR, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_CRITICAL(...) SHM_PERFORM_LOG(frenzy::ShmLogPriority::SLP_CRITICAL, __FILE__, __LINE__, __VA_ARGS__)
 
 #define INIT_DEFAULT_SHM_LOG()                       \
     do {                                             \

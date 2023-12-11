@@ -170,7 +170,7 @@ void handle_filter() {
         double val = std::stod(lets[left_field_idx]);
         double operand_val = filter_val;
         if (!cmp_rhs_value) {
-            operand_val = std::stod(lets[operand_idx]);
+            operand_val = std::stod(lets[static_cast<unsigned long>(operand_idx)]);
         }
         if ((cmpType == CmpType::Great && val > operand_val) || (cmpType == CmpType::Less && val < operand_val) ||
             (cmpType == CmpType::GreatEqual && val >= operand_val) ||
@@ -286,9 +286,9 @@ bool read_file() {
 void print_selected(std::vector<std::string>& datum, std::vector<int> selected) {
     int total_column = (int)selected.size();
     for (int i = 0; i < total_column - 1; ++i) {
-        cout << datum[selected[i]] << ",";
+        cout << datum[static_cast<unsigned long>(selected[static_cast<unsigned long>(i)])] << ",";
     }
-    cout << datum[selected.back()];
+    cout << datum[static_cast<unsigned long>(selected.back())];
 }
 
 std::vector<std::string> split(const std::string& str, char delimiter_) {

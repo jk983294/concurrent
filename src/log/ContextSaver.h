@@ -126,11 +126,10 @@ public:
             memcpy(&len, readPos, sizeof(size_t));
             readPos += sizeof(size_t);
             if (len > 0) {
-                char data[len + 1];
-                memcpy(data, readPos, len);
+                value.resize(len + 1);
+                memcpy(value.data(), readPos, len);
                 value[len] = '\0';
                 readPos += len;
-                value = std::string(data);
             } else {
                 value = "";
             }

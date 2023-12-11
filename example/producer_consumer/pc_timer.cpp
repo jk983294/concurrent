@@ -14,8 +14,8 @@ void produce(frenzy::TimerWheel<>& q, int id) {
         auto tm2 = tm + sleep_tm * 1000 * 1000;
         ASYNC_LOG("producer " << id << " put " << value << " sleep " << sleep_tm);
         q.register_timer(
-            [id, value](int64_t tm) {
-                ASYNC_LOG("consumer get producer " << id << " value " << value << " at " << tm);
+            [id, value](int64_t tm_) {
+                ASYNC_LOG("consumer get producer " << id << " value " << value << " at " << tm_);
             },
             tm2);
         ++value;
