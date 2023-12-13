@@ -182,6 +182,12 @@ void vec_append(std::vector<T>& vec, const std::vector<T>& vec1) {
     vec.insert(vec.end(), vec1.begin(), vec1.end());
 }
 
+template <typename T, typename T1>
+void init_container(std::vector<T>& c, size_t s, T1 init_value) {
+    c.resize(s);
+    std::fill(c.begin(), c.end(), init_value);
+}
+
 }  // namespace ztool
 
 #endif

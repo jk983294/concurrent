@@ -35,6 +35,17 @@ std::string CnFutUkeyMetaMap::get_pdt(int ukey) {
     }
 }
 
+std::string CnFutUkeyMetaMap::get_ins(int ukey) {
+    int mat = ukey % 10000;
+    int pdt_ukey = ukey - mat;
+    auto itr = ukey2meta.find(pdt_ukey);
+    if (itr == ukey2meta.end()) return "NA";
+    else {
+        CnFutUkeyMeta* meta = itr->second;
+        return meta->pdt + std::to_string(mat) + "." + meta->exch;
+    }
+}
+
 int CnFutUkeyMetaMap::get_ukey(std::string ins) {
     auto itr = ins.find_first_of('.');
     if (itr != string::npos) ins = ins.substr(0, itr); // chop off .CFFEX suffix
