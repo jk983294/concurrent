@@ -64,12 +64,12 @@ int CnFutUkeyMetaMap::get_ukey(const std::string& pdt, int maturity) {
 bool CnFutUkeyMetaMap::read(std::string path) {
     path = ztool::FileExpandUser(path);
     metas.clear();
-    io::CSVReader<3> infile(path);
+    io::CSVReader<5> infile(path);
 
-    infile.read_header(io::ignore_extra_column, "pdt", "exch", "ukey");
+    infile.read_header(io::ignore_extra_column, "pdt", "exch", "ukey", "night", "day");
 
     CnFutUkeyMeta meta;
-    while (infile.read_row(meta.pdt, meta.exch, meta.ukey)) {
+    while (infile.read_row(meta.pdt, meta.exch, meta.ukey, meta.night_end, meta.day_end)) {
         metas.push_back(meta);
     }
 
@@ -91,5 +91,15 @@ bool CnFutUkeyMetaMap::read(std::string path) {
         }
     }
     return true;
+}
+CnFutUkeyMeta* CnFutUkeyMetaMap::find(const std::string& pdt) const {
+    auto itr = pdt2meta.find(pdt);
+    if (itr == pdt2meta.end()) return nullptr;
+    else return itr->second;
+}
+CnFutUkeyMeta* CnFutUkeyMetaMap::find(int pdt_ukey) const {
+    auto itr = ukey2meta.find(pdt_ukey);
+    if (itr == ukey2meta.end()) return nullptr;
+    else return itr->second;
 }
 }
