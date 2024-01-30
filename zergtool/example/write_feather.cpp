@@ -28,8 +28,8 @@ int main() {
 
     write_feather(path_, nrOfRows, options);
 
-    FeatherReader reader;
-    reader.read(path_);
+    InputData reader;
+    FeatherReader::read(path_, reader);
     printf("rows=%zu\n", reader.rows);
     for (auto& col : reader.cols) {
         if (col.type == 1) {

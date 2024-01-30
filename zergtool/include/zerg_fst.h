@@ -69,13 +69,7 @@ bool write_fst(std::string path_, size_t nrow, const std::vector<OutputColumnOpt
 
 struct FstReader {
     FstReader() = default;
-    ~FstReader() {
-        for (auto* vec : ints) delete vec;
-        for (auto* vec : doubles) delete vec;
-        for (auto* vec : bools) delete vec;
-        for (auto* vec : strs) delete vec;
-    }
-    void read(std::string path_) {
+    static void read(std::string path_, InputData& id) {
         path_ = FileExpandUser(path_);
         FstTable table;
         ColumnFactory columnFactory;
@@ -86,7 +80,7 @@ struct FstReader {
         FstStore fstStore(path_);
         fstStore.fstRead(table, nullptr, 1, -1, &columnFactory, keyIndex, &selectedCols, &*col_names);
 
-        rows = table.NrOfRows();
+        id.rows = table.NrOfRows();
         for (uint64_t i = 0; i < selectedCols.Length(); ++i) {
             std::shared_ptr<DestructableObject> column;
             FstColumnType type;
@@ -98,39 +92,32 @@ struct FstReader {
             if (type == FstColumnType::INT_32) {
                 auto i_vec = std::dynamic_pointer_cast<IntVector>(column);
                 auto ptr = i_vec->Data();
-                auto* pVec = new std::vector<int>(ptr, ptr + rows);
-                ints.push_back(pVec);
-                cols.push_back({3, pVec, selectedCols.GetElement(i)});
+                auto* pVec = new std::vector<int>(ptr, ptr + id.rows);
+                id.ints.push_back(pVec);
+                id.cols.push_back({3, pVec, selectedCols.GetElement(i)});
             } else if (type == FstColumnType::DOUBLE_64) {
                 auto i_vec = std::dynamic_pointer_cast<DoubleVector>(column);
                 auto ptr = i_vec->Data();
-                auto* pVec = new std::vector<double>(ptr, ptr + rows);
-                doubles.push_back(pVec);
-                cols.push_back({1, pVec, selectedCols.GetElement(i)});
+                auto* pVec = new std::vector<double>(ptr, ptr + id.rows);
+                id.doubles.push_back(pVec);
+                id.cols.push_back({1, pVec, selectedCols.GetElement(i)});
             } else if (type == FstColumnType::CHARACTER) {
                 auto i_vec = std::dynamic_pointer_cast<StringVector>(column);
                 auto ptr = i_vec->StrVec();
                 auto* pVec = new std::vector<std::string>(*ptr);
-                strs.push_back(pVec);
-                cols.push_back({4, pVec, selectedCols.GetElement(i)});
+                id.strs.push_back(pVec);
+                id.cols.push_back({4, pVec, selectedCols.GetElement(i)});
             } else if (type == FstColumnType::BOOL_2) {
                 auto i_vec = std::dynamic_pointer_cast<IntVector>(column);
                 auto ptr = i_vec->Data();
-                auto* pVec = new std::vector<bool>(rows, false);
-                for (uint64_t j = 0; j < rows; ++j) {
+                auto* pVec = new std::vector<bool>(id.rows, false);
+                for (uint64_t j = 0; j < id.rows; ++j) {
                     if (ptr[j] == 1) (*pVec)[j] = true; // 00 = false, 01 = true and 10 = NA
                 }
-                bools.push_back(pVec);
-                cols.push_back({5, pVec, selectedCols.GetElement(i)});
+                id.bools.push_back(pVec);
+                id.cols.push_back({5, pVec, selectedCols.GetElement(i)});
             }
         }
     }
-
-    std::vector<std::vector<int>*> ints;
-    std::vector<std::vector<double>*> doubles;
-    std::vector<std::vector<bool>*> bools;
-    std::vector<std::vector<std::string>*> strs;
-    std::vector<OutputColumnOption> cols;
-    uint64_t rows{0};
 };
 }  // namespace ztool

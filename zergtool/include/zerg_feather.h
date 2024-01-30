@@ -138,13 +138,7 @@ inline void get_array_data_bool(std::vector<bool>& vec, std::shared_ptr<arrow::T
 
 struct FeatherReader {
     FeatherReader() = default;
-    ~FeatherReader() {
-        for (auto* vec : ints) delete vec;
-        for (auto* vec : doubles) delete vec;
-        for (auto* vec : bools) delete vec;
-        for (auto* vec : strs) delete vec;
-    }
-    void read(std::string path_) {
+    static void read(std::string path_, InputData& id) {
         path_ = FileExpandUser(path_);
         auto format = std::make_shared<arrow::dataset::IpcFileFormat>();
         std::shared_ptr<arrow::fs::FileSystem> fs = std::make_shared<arrow::fs::LocalFileSystem>();
@@ -158,7 +152,7 @@ struct FeatherReader {
         std::shared_ptr<arrow::Table> table1 = scanner->ToTable().ValueOrDie();
         auto schema_ = table1->schema();
         auto col_cnt = table1->num_columns();
-        rows = table1->num_rows();
+        id.rows = table1->num_rows();
 
         for (int i = 0; i < col_cnt; ++i) {
             auto f_ = schema_->field(i);
@@ -166,40 +160,33 @@ struct FeatherReader {
 
             if (type_ == "int32") {
                 auto* pVec = new std::vector<int>();
-                get_array_data<arrow::Int32Array, int>(*pVec, table1, i, rows);
-                ints.push_back(pVec);
-                cols.push_back({3, pVec, f_->name()});
+                get_array_data<arrow::Int32Array, int>(*pVec, table1, i, id.rows);
+                id.ints.push_back(pVec);
+                id.cols.push_back({3, pVec, f_->name()});
             } else if (type_ == "double") {
                 auto* pVec = new std::vector<double>();
-                get_array_data<arrow::DoubleArray, double>(*pVec, table1, i, rows);
-                doubles.push_back(pVec);
-                cols.push_back({1, pVec, f_->name()});
+                get_array_data<arrow::DoubleArray, double>(*pVec, table1, i, id.rows);
+                id.doubles.push_back(pVec);
+                id.cols.push_back({1, pVec, f_->name()});
             } else if (type_ == "float") {
                 auto* pVec = new std::vector<double>();
-                get_array_data<arrow::FloatArray, double>(*pVec, table1, i, rows);
-                doubles.push_back(pVec);
-                cols.push_back({1, pVec, f_->name()});
+                get_array_data<arrow::FloatArray, double>(*pVec, table1, i, id.rows);
+                id.doubles.push_back(pVec);
+                id.cols.push_back({1, pVec, f_->name()});
             } else if (type_ == "utf8") {
                 auto* pVec = new std::vector<std::string>();
-                get_array_data_string(*pVec, table1, i, rows);
-                strs.push_back(pVec);
-                cols.push_back({4, pVec, f_->name()});
+                get_array_data_string(*pVec, table1, i, id.rows);
+                id.strs.push_back(pVec);
+                id.cols.push_back({4, pVec, f_->name()});
             } else if (type_ == "bool") {
                 auto* pVec = new std::vector<bool>();
-                get_array_data_bool(*pVec, table1, i, rows);
-                bools.push_back(pVec);
-                cols.push_back({5, pVec, f_->name()});
+                get_array_data_bool(*pVec, table1, i, id.rows);
+                id.bools.push_back(pVec);
+                id.cols.push_back({5, pVec, f_->name()});
             } else {
                 printf("unknown %s,%s\n", f_->name().c_str(), type_.c_str());
             }
         }
     }
-
-    std::vector<std::vector<int>*> ints;
-    std::vector<std::vector<double>*> doubles;
-    std::vector<std::vector<bool>*> bools;
-    std::vector<std::vector<std::string>*> strs;
-    std::vector<OutputColumnOption> cols;
-    uint64_t rows{0};
 };
 }  // namespace ztool

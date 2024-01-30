@@ -26,6 +26,22 @@ struct OutputColumnOption {
     std::string name;
 };
 
+struct InputData { // Column-wise data
+    InputData() = default;
+    ~InputData() {
+        for (auto* vec : ints) delete vec;
+        for (auto* vec : doubles) delete vec;
+        for (auto* vec : bools) delete vec;
+        for (auto* vec : strs) delete vec;
+    }
+    std::vector<std::vector<int>*> ints;
+    std::vector<std::vector<double>*> doubles;
+    std::vector<std::vector<bool>*> bools;
+    std::vector<std::vector<std::string>*> strs;
+    std::vector<OutputColumnOption> cols;
+    uint64_t rows{0};
+};
+
 /**
  * c++ version of mkdir -p command
  * example: mkdirp("/tmp/dd/aaa", 0755);

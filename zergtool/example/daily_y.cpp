@@ -37,7 +37,7 @@ struct DailyY {
     void save_result();
     void reserve(size_t len);
 
-    FstReader y_reader;
+    InputData y_reader;
     std::string m_y_path, m_x_dir;
     std::string m_y_pattern = "^y";
     std::string m_x_pattern;
@@ -145,8 +145,8 @@ static double corr(const std::vector<double> &x, const std::vector<double> &y, i
 }
 
 void DailyY::work_single(const string& date_str, const string& path) {
-    FstReader x_reader;
-    x_reader.read(path);
+    InputData x_reader;
+    FstReader::read(path, x_reader);
     std::regex x_regex(m_x_pattern);
     std::vector<int>* x_ukeys{nullptr};
     std::vector<int>* x_dates{nullptr};
@@ -290,7 +290,7 @@ void DailyY::reserve(size_t len) {
 
 void DailyY::read_y() {
     std::regex y_regex(m_y_pattern);
-    y_reader.read(m_y_path);
+    FstReader::read(m_y_path, y_reader);
     printf("load y rows=%zu\n", y_reader.rows);
     for (auto& col : y_reader.cols) {
         if (col.type == 1) {

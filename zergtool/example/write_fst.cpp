@@ -28,8 +28,8 @@ int main() {
 
     write_fst(path_, nrOfRows, options);
 
-    FstReader reader;
-    reader.read(path_);
+    InputData reader;
+    FstReader::read(path_, reader);
     printf("rows=%zu\n", reader.rows);
     for (auto& col : reader.cols) {
         if (col.type == 1) {
