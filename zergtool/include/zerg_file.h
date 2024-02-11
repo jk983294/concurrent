@@ -29,17 +29,55 @@ struct OutputColumnOption {
 struct InputData { // Column-wise data
     InputData() = default;
     ~InputData() {
-        for (auto* vec : ints) delete vec;
-        for (auto* vec : doubles) delete vec;
-        for (auto* vec : bools) delete vec;
-        for (auto* vec : strs) delete vec;
+        clear();
+        for (auto* vec : m_double_pool) delete vec;
+        for (auto* vec : m_int_pool) delete vec;
+        for (auto* vec : m_bool_pool) delete vec;
+        for (auto* vec : m_str_pool) delete vec;
     }
+
+    void clear() {
+        m_double_pool.insert(m_double_pool.end(), doubles.begin(), doubles.end());
+        m_int_pool.insert(m_int_pool.end(), ints.begin(), ints.end());
+        m_bool_pool.insert(m_bool_pool.end(), bools.begin(), bools.end());
+        m_str_pool.insert(m_str_pool.end(), strs.begin(), strs.end());
+        doubles.clear();
+        ints.clear();
+        bools.clear();
+        strs.clear();
+        cols.clear();
+        rows = 0;
+    }
+
+    template<typename T>
+    std::vector<T>* new_type_vec(std::vector<std::vector<T>*>& pool, uint64_t size) {
+        if (pool.empty()) {
+            return new std::vector<T>(size);
+        } else {
+            auto* pFeature = pool.back();
+            pool.pop_back();
+            pFeature->clear();
+            pFeature->resize(size);
+            return pFeature;
+        }
+    }
+
+    std::vector<double>* new_double_vec(uint64_t size) { return new_type_vec<double>(m_double_pool, size); }
+    std::vector<int>* new_int_vec(uint64_t size) { return new_type_vec<int>(m_int_pool, size); }
+    std::vector<bool>* new_bool_vec(uint64_t size) { return new_type_vec<bool>(m_bool_pool, size); }
+    std::vector<std::string>* new_str_vec(uint64_t size) { return new_type_vec<std::string>(m_str_pool, size); }
+
     std::vector<std::vector<int>*> ints;
     std::vector<std::vector<double>*> doubles;
     std::vector<std::vector<bool>*> bools;
     std::vector<std::vector<std::string>*> strs;
     std::vector<OutputColumnOption> cols;
     uint64_t rows{0};
+
+    std::vector<std::vector<int>*> m_int_pool;
+    std::vector<std::vector<double>*> m_double_pool;
+    std::vector<std::vector<bool>*> m_bool_pool;
+    std::vector<std::vector<std::string>*> m_str_pool;
 };
 
 /**

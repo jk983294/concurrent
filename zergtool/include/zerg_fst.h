@@ -6,7 +6,7 @@
 #include <zerg_file.h>
 
 namespace ztool {
-bool write_fst(std::string path_, size_t nrow, const std::vector<OutputColumnOption>& cols) {
+inline bool write_fst(std::string path_, size_t nrow, const std::vector<OutputColumnOption>& cols) {
     path_ = FileExpandUser(path_);
     std::vector<IntVectorAdapter*> ints;
     std::vector<DoubleVectorAdapter*> doubles;
