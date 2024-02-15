@@ -50,22 +50,25 @@ struct InputData { // Column-wise data
     }
 
     template<typename T>
-    std::vector<T>* new_type_vec(std::vector<std::vector<T>*>& pool, uint64_t size) {
+    std::vector<T>* new_type_vec(std::vector<std::vector<T>*>& pool, std::vector<std::vector<T>*>& pool1, uint64_t size) {
         if (pool.empty()) {
-            return new std::vector<T>(size);
+            auto ptr = new std::vector<T>(size);
+            pool1.push_back(ptr);
+            return ptr;
         } else {
             auto* pFeature = pool.back();
             pool.pop_back();
+            pool1.push_back(pFeature);
             pFeature->clear();
             pFeature->resize(size);
             return pFeature;
         }
     }
 
-    std::vector<double>* new_double_vec(uint64_t size) { return new_type_vec<double>(m_double_pool, size); }
-    std::vector<int>* new_int_vec(uint64_t size) { return new_type_vec<int>(m_int_pool, size); }
-    std::vector<bool>* new_bool_vec(uint64_t size) { return new_type_vec<bool>(m_bool_pool, size); }
-    std::vector<std::string>* new_str_vec(uint64_t size) { return new_type_vec<std::string>(m_str_pool, size); }
+    std::vector<double>* new_double_vec(uint64_t size) { return new_type_vec<double>(m_double_pool, doubles, size); }
+    std::vector<int>* new_int_vec(uint64_t size) { return new_type_vec<int>(m_int_pool, ints, size); }
+    std::vector<bool>* new_bool_vec(uint64_t size) { return new_type_vec<bool>(m_bool_pool, bools, size); }
+    std::vector<std::string>* new_str_vec(uint64_t size) { return new_type_vec<std::string>(m_str_pool, strs, size); }
 
     std::vector<std::vector<int>*> ints;
     std::vector<std::vector<double>*> doubles;

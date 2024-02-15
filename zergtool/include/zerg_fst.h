@@ -92,29 +92,29 @@ struct FstReader {
             if (type == FstColumnType::INT_32) {
                 auto i_vec = std::dynamic_pointer_cast<IntVector>(column);
                 auto ptr = i_vec->Data();
-                auto* pVec = new std::vector<int>(ptr, ptr + id.rows);
-                id.ints.push_back(pVec);
+                auto* pVec = id.new_int_vec(id.rows);
+                std::copy(ptr, ptr + id.rows, pVec->data());
                 id.cols.push_back({3, pVec, selectedCols.GetElement(i)});
             } else if (type == FstColumnType::DOUBLE_64) {
                 auto i_vec = std::dynamic_pointer_cast<DoubleVector>(column);
                 auto ptr = i_vec->Data();
-                auto* pVec = new std::vector<double>(ptr, ptr + id.rows);
-                id.doubles.push_back(pVec);
+                auto* pVec = id.new_double_vec(id.rows);
+                std::copy(ptr, ptr + id.rows, pVec->data());
                 id.cols.push_back({1, pVec, selectedCols.GetElement(i)});
             } else if (type == FstColumnType::CHARACTER) {
                 auto i_vec = std::dynamic_pointer_cast<StringVector>(column);
                 auto ptr = i_vec->StrVec();
-                auto* pVec = new std::vector<std::string>(*ptr);
-                id.strs.push_back(pVec);
+                auto* pVec = id.new_str_vec(id.rows);
+                std::copy(ptr->begin(), ptr->end(), pVec->data());
                 id.cols.push_back({4, pVec, selectedCols.GetElement(i)});
             } else if (type == FstColumnType::BOOL_2) {
                 auto i_vec = std::dynamic_pointer_cast<IntVector>(column);
                 auto ptr = i_vec->Data();
-                auto* pVec = new std::vector<bool>(id.rows, false);
+                auto* pVec = id.new_bool_vec(id.rows);
                 for (uint64_t j = 0; j < id.rows; ++j) {
                     if (ptr[j] == 1) (*pVec)[j] = true; // 00 = false, 01 = true and 10 = NA
+                    else (*pVec)[j] = false;
                 }
-                id.bools.push_back(pVec);
                 id.cols.push_back({5, pVec, selectedCols.GetElement(i)});
             }
         }

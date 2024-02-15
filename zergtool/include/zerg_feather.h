@@ -159,29 +159,24 @@ struct FeatherReader {
             auto type_ = f_->type()->name();
 
             if (type_ == "int32") {
-                auto* pVec = new std::vector<int>();
+                auto* pVec = id.new_int_vec(id.rows);
                 get_array_data<arrow::Int32Array, int>(*pVec, table1, i, id.rows);
-                id.ints.push_back(pVec);
                 id.cols.push_back({3, pVec, f_->name()});
             } else if (type_ == "double") {
-                auto* pVec = new std::vector<double>();
+                auto* pVec = id.new_double_vec(id.rows);
                 get_array_data<arrow::DoubleArray, double>(*pVec, table1, i, id.rows);
-                id.doubles.push_back(pVec);
                 id.cols.push_back({1, pVec, f_->name()});
             } else if (type_ == "float") {
-                auto* pVec = new std::vector<double>();
+                auto* pVec = id.new_double_vec(id.rows);
                 get_array_data<arrow::FloatArray, double>(*pVec, table1, i, id.rows);
-                id.doubles.push_back(pVec);
                 id.cols.push_back({1, pVec, f_->name()});
             } else if (type_ == "utf8") {
-                auto* pVec = new std::vector<std::string>();
+                auto* pVec = id.new_str_vec(id.rows);
                 get_array_data_string(*pVec, table1, i, id.rows);
-                id.strs.push_back(pVec);
                 id.cols.push_back({4, pVec, f_->name()});
             } else if (type_ == "bool") {
-                auto* pVec = new std::vector<bool>();
+                auto* pVec = id.new_bool_vec(id.rows);
                 get_array_data_bool(*pVec, table1, i, id.rows);
-                id.bools.push_back(pVec);
                 id.cols.push_back({5, pVec, f_->name()});
             } else {
                 printf("unknown %s,%s\n", f_->name().c_str(), type_.c_str());
