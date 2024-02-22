@@ -8,19 +8,36 @@
 #include <zerg_file.h>
 
 namespace ztool {
-inline bool write_feather(std::string path_, size_t nrow, const std::vector<OutputColumnOption>& cols) {
+inline bool write_feather(std::string path_, size_t nrow, const std::vector<OutputColumnOption>& cols,
+                          bool use_float32 = false) {
     path_ = FileExpandUser(path_);
+    InputData id;
     std::vector<std::shared_ptr<arrow::Array>> arrays;
     arrow::SchemaBuilder sb_;
     for (size_t i = 0; i < cols.size(); ++i) {
         auto& option = cols[i];
         if (option.type == 1) {
-            auto tmp_builder = std::make_shared<arrow::NumericBuilder<arrow::DoubleType>>();
-            std::ignore = tmp_builder->AppendValues(reinterpret_cast<double*>(option.data), nrow);
-            std::shared_ptr<arrow::Array> tmp_a;
-            std::ignore = tmp_builder->Finish(&tmp_a);
-            arrays.push_back(tmp_a);
-            std::ignore = sb_.AddField(arrow::field(option.name, arrow::float64()));
+            if (use_float32) {
+                auto tmp_builder = std::make_shared<arrow::NumericBuilder<arrow::FloatType>>();
+                std::vector<float>* f_vec = id.new_float_vec(nrow);
+                float* pf = f_vec->data();
+                auto* src_vec = reinterpret_cast<double*>(option.data);
+                for (size_t j = 0; j < nrow; ++j) {
+                    pf[j] = src_vec[j];
+                }
+                std::ignore = tmp_builder->AppendValues(pf, nrow);
+                std::shared_ptr<arrow::Array> tmp_a;
+                std::ignore = tmp_builder->Finish(&tmp_a);
+                arrays.push_back(tmp_a);
+                std::ignore = sb_.AddField(arrow::field(option.name, arrow::float32()));
+            } else {
+                auto tmp_builder = std::make_shared<arrow::NumericBuilder<arrow::DoubleType>>();
+                std::ignore = tmp_builder->AppendValues(reinterpret_cast<double*>(option.data), nrow);
+                std::shared_ptr<arrow::Array> tmp_a;
+                std::ignore = tmp_builder->Finish(&tmp_a);
+                arrays.push_back(tmp_a);
+                std::ignore = sb_.AddField(arrow::field(option.name, arrow::float64()));
+            }
         } else if (option.type == 2) {
             auto tmp_builder = std::make_shared<arrow::NumericBuilder<arrow::FloatType>>();
             std::ignore = tmp_builder->AppendValues(reinterpret_cast<float*>(option.data), nrow);

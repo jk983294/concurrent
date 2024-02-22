@@ -4,14 +4,14 @@ using namespace ztool;
 
 int main() {
     std::string path_ = "/tmp/data2.feather";
-    int nrOfRows = 10;
+    size_t nrOfRows = 1000;
 
     std::vector<double> d_vec(nrOfRows);
     std::vector<float> f_vec(nrOfRows);
     std::vector<int> i_vec(nrOfRows);
     std::vector<std::string> s_vec(nrOfRows);
     std::vector<bool> b_vec(nrOfRows);
-    for (int i = 0; i < nrOfRows; ++i) {
+    for (size_t i = 0; i < nrOfRows; ++i) {
         d_vec[i] = i;
         f_vec[i] = i;
         i_vec[i] = i;
@@ -26,7 +26,7 @@ int main() {
     options.push_back({4, &s_vec, "my_str"});
     options.push_back({5, &b_vec, "my_bool"});
 
-    write_feather(path_, nrOfRows, options);
+    write_feather(path_, nrOfRows, options, true);
 
     InputData reader;
     FeatherReader::read(path_, reader);
@@ -34,16 +34,16 @@ int main() {
     for (auto& col : reader.cols) {
         if (col.type == 1) {
             auto& vec = *reinterpret_cast<std::vector<double>*>(col.data);
-            printf("col %s type=%d data=%f\n", col.name.c_str(), col.type, vec.front());
+            printf("col %s type=%d data=%f,%f\n", col.name.c_str(), col.type, vec.front(), vec.back());
         } else if (col.type == 3) {
             auto& vec = *reinterpret_cast<std::vector<int>*>(col.data);
-            printf("col %s type=%d data=%d\n", col.name.c_str(), col.type, vec.front());
+            printf("col %s type=%d data=%d,%d\n", col.name.c_str(), col.type, vec.front(), vec.back());
         } else if (col.type == 4) {
             auto& vec = *reinterpret_cast<std::vector<std::string>*>(col.data);
-            printf("col %s type=%d data=%s\n", col.name.c_str(), col.type, vec.front().c_str());
+            printf("col %s type=%d data=%s,%s\n", col.name.c_str(), col.type, vec.front().c_str(), vec.back().c_str());
         } else if (col.type == 5) {
             auto& vec = *reinterpret_cast<std::vector<bool>*>(col.data);
-            printf("col %s type=%d data=%d\n", col.name.c_str(), col.type, (int)vec.front());
+            printf("col %s type=%d data=%d,%d\n", col.name.c_str(), col.type, (int)vec.front(), (int)vec.back());
         }
     }
     return 0;

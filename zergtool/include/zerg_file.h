@@ -31,6 +31,7 @@ struct InputData { // Column-wise data
     ~InputData() {
         clear();
         for (auto* vec : m_double_pool) delete vec;
+        for (auto* vec : m_float_pool) delete vec;
         for (auto* vec : m_int_pool) delete vec;
         for (auto* vec : m_bool_pool) delete vec;
         for (auto* vec : m_str_pool) delete vec;
@@ -38,6 +39,7 @@ struct InputData { // Column-wise data
 
     void clear() {
         m_double_pool.insert(m_double_pool.end(), doubles.begin(), doubles.end());
+        m_float_pool.insert(m_float_pool.end(), floats.begin(), floats.end());
         m_int_pool.insert(m_int_pool.end(), ints.begin(), ints.end());
         m_bool_pool.insert(m_bool_pool.end(), bools.begin(), bools.end());
         m_str_pool.insert(m_str_pool.end(), strs.begin(), strs.end());
@@ -66,12 +68,14 @@ struct InputData { // Column-wise data
     }
 
     std::vector<double>* new_double_vec(uint64_t size) { return new_type_vec<double>(m_double_pool, doubles, size); }
+    std::vector<float>* new_float_vec(uint64_t size) { return new_type_vec<float>(m_float_pool, floats, size); }
     std::vector<int>* new_int_vec(uint64_t size) { return new_type_vec<int>(m_int_pool, ints, size); }
     std::vector<bool>* new_bool_vec(uint64_t size) { return new_type_vec<bool>(m_bool_pool, bools, size); }
     std::vector<std::string>* new_str_vec(uint64_t size) { return new_type_vec<std::string>(m_str_pool, strs, size); }
 
     std::vector<std::vector<int>*> ints;
     std::vector<std::vector<double>*> doubles;
+    std::vector<std::vector<float>*> floats;
     std::vector<std::vector<bool>*> bools;
     std::vector<std::vector<std::string>*> strs;
     std::vector<OutputColumnOption> cols;
@@ -79,6 +83,7 @@ struct InputData { // Column-wise data
 
     std::vector<std::vector<int>*> m_int_pool;
     std::vector<std::vector<double>*> m_double_pool;
+    std::vector<std::vector<float>*> m_float_pool;
     std::vector<std::vector<bool>*> m_bool_pool;
     std::vector<std::vector<std::string>*> m_str_pool;
 };
