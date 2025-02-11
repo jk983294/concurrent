@@ -1,7 +1,7 @@
 #ifndef _ZERG_MACRO_H_
 #define _ZERG_MACRO_H_
 
-#include <log/ShmLog.h>
+//#include <log/ShmLog.h>
 #include "zerg_exception.h"
 
 #define HAS_KEY(a, b) (((a).find(b)) != ((a).end()))
